@@ -75,10 +75,12 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit}
 .top::after{content:"";display:block;height:1px;background:var(--hair)}
 .brandrow{display:flex;align-items:center;gap:11px;padding:14px 18px 10px}
 .wordmark{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;letter-spacing:.17em}
-.tagline{font-size:12px;color:var(--faint)}
+.tagline{font-size:12px;color:var(--faint);white-space:nowrap}
+@media (max-width:430px){ .tagline{display:none} }
 .brandrow .gap{margin-left:auto}
 .chipbtn{
   height:36px;min-width:36px;padding:0 11px;border-radius:11px;background:var(--surface);
+  white-space:nowrap;flex:none;
   box-shadow:var(--sh-s);display:inline-flex;align-items:center;justify-content:center;gap:6px;
   font-size:13.5px;font-weight:500;color:var(--ink2);transition:color .15s,background .15s;
 }
@@ -115,7 +117,7 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit}
 .tile .n.t-rose{color:var(--rose)} .tile .n.t-brass{color:var(--brass)}
 
 /* ============ list ============ */
-main{flex:1;padding:0 18px calc(108px + env(safe-area-inset-bottom))}
+main{flex:1;padding:0 18px calc(124px + env(safe-area-inset-bottom))}
 .secthead{display:flex;align-items:baseline;gap:10px;padding:16px 3px 9px}
 .secthead .c{margin-left:auto;font-size:12px;color:var(--faint)}
 .stack{display:flex;flex-direction:column;gap:7px}
@@ -224,7 +226,7 @@ button.card:active{transform:scale(.993)}
 /* history */
 .hist{display:flex;flex-direction:column}
 .hrow{
-  display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:12px;
+  display:grid;grid-template-columns:44px 1fr auto 14px;align-items:center;gap:11px;
   padding:11px 16px;width:100%;text-align:left;position:relative;
   border-top:1px solid var(--hair);background:none;
 }
@@ -240,13 +242,14 @@ button.card:active{transform:scale(.993)}
 .hrow .amt.none{color:var(--rose);font-weight:600;font-size:13px}
 .hrow.thisyear{background:var(--green-soft)}
 .hrow.thisyear .amt{color:var(--green-ink)}
-.hrow .edit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--faint);opacity:0;transition:opacity .15s}
-.hrow:hover .edit{opacity:1}
+.hrow .chev{font-size:15px;color:var(--hair2);line-height:1;transition:color .15s}
+.hrow:hover .chev{color:var(--muted)}
+.hrow.gap .chev{visibility:hidden}
 
 .summary{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--hair)}
 .summary div{padding:13px 14px;text-align:center}
 .summary div + div{border-left:1px solid var(--hair)}
-.summary .k{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.summary .k{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .summary .v{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:19px;margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.022em}
 .summary .v.m{color:var(--brass)}
 
@@ -675,7 +678,7 @@ async function pushNow(){
 }
 function syncBadge(){
   const dot = $('#syncDot'), txt = $('#syncTxt');
-  if(!GH.cfg()){ dot.className='dot off'; txt.textContent='This device'; return; }
+  if(!GH.cfg()){ dot.className='dot off'; txt.textContent='Local'; return; }
   if(pushing){ dot.className='dot warn'; txt.textContent='Saving'; return; }
   if(dirty){ dot.className='dot warn'; txt.textContent='Unsaved'; return; }
   dot.className='dot ok'; txt.textContent='Synced';
@@ -976,6 +979,7 @@ function openMadrasa(id){
         r.appendChild(el('div','yr', String(y)));
         r.appendChild(el('div','miss','not given'));
         r.appendChild(el('div','amt none','—'));
+        r.appendChild(el('div','chev',''));
         hist.appendChild(r);
         return;
       }
@@ -992,7 +996,7 @@ function openMadrasa(id){
         right.appendChild(el('div','amt', d.amount!=null? rs(d.amount):'—'));
         right.appendChild(el('div','when', dmy(d.date)));
         r.appendChild(right);
-        r.appendChild(el('span','edit','edit'));
+        r.appendChild(el('div','chev','›'));
         r.addEventListener('click', ()=>{ close(); openDonation(m.id, d.id); });
         hist.appendChild(r);
       });
@@ -1000,8 +1004,8 @@ function openMadrasa(id){
     hp.appendChild(hist);
     const sm = el('div','summary');
     [['Total given', rs(m.total), true],
-     ['Usual amount', m.usual!=null?rs(m.usual):'—', true],
-     ['Years given', String(m.years.length), false]].forEach(([k,v,money])=>{
+     ['Usual', m.usual!=null?rs(m.usual):'—', true],
+     ['Years', String(m.years.length), false]].forEach(([k,v,money])=>{
       const d = el('div');
       d.appendChild(el('div','k',k));
       d.appendChild(el('div','v'+(money?' m':''),v));
@@ -1017,6 +1021,7 @@ function openMadrasa(id){
     }
 
     /* ---- record ---- */
+    const go = el('button','btn primary'); go.type='button';
     const rp = panel('Record a donation');
     const pick = amountPicker(rp, {usual:m.usual, onChange:()=>label()});
     body.appendChild(rp);
@@ -1040,8 +1045,8 @@ function openMadrasa(id){
     });
     body.appendChild(saveD);
 
-    const go = el('button','btn primary'); go.type='button';
     function label(){
+      if(!go) return;
       go.disabled = !(pick.value>0);
       go.textContent = pick.value>0 ? 'Save '+rs(pick.value)+'  ·  '+dmy(pick.date) : 'Choose an amount';
     }
@@ -1078,6 +1083,7 @@ function openDonation(mid, did){
     tb.appendChild(el('div','addr', 'Entry from '+(d.date?dmy(d.date):d.year)+(d.src==='xlsx'?'  ·  came from your Excel sheet':'')));
     body.appendChild(tb);
 
+    const go = el('button','btn primary'); go.type='button';
     const p = panel('Amount and date');
     const pick = amountPicker(p, {usual:m.usual, initial:Number(d.amount), date:d.date||(d.year+'-01-01'), onChange:()=>label()});
     body.appendChild(p);
@@ -1097,8 +1103,8 @@ function openDonation(mid, did){
     });
     body.appendChild(del);
 
-    const go = el('button','btn primary'); go.type='button';
     function label(){
+      if(!go) return;
       go.disabled = !(pick.value>0);
       go.textContent = pick.value>0 ? 'Save '+rs(pick.value)+'  ·  '+dmy(pick.date) : 'Choose an amount';
     }
@@ -1126,6 +1132,7 @@ function openEntry(pre){
     const dupWrap = el('div'); dupWrap.style.marginTop='13px';
     body.appendChild(dupWrap);
 
+    const go = el('button','btn primary'); go.type='button';
     const ap = panel('Amount given');
     const pick = amountPicker(ap, {usual:null, onChange:()=>label()});
     body.appendChild(ap);
@@ -1154,8 +1161,8 @@ function openEntry(pre){
     [fName,fRegd].forEach(i=> i.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(checkDup,260); }));
     if(pre.name||pre.regd) checkDup();
 
-    const go = el('button','btn primary'); go.type='button';
     function label(){
+      if(!go) return;
       const ok = fName.value.trim().length>1;
       go.disabled = !ok;
       go.textContent = !ok ? 'Enter a name'
