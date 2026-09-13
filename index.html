@@ -879,6 +879,7 @@ function render(){
 
 /* ============ amount + date picker ============ */
 function amountPicker(container, opts){
+  let ready = false;                 // no callbacks until the caller has finished wiring up
   const usual = opts.usual;
   const presets = [50,100,200,500];
   if(usual!=null && !presets.includes(usual)) presets[3] = usual;
@@ -937,9 +938,10 @@ function amountPicker(container, opts){
       const d = new Date(); d.setDate(d.getDate()+off);
       b.classList.toggle('on', date===d.toLocaleDateString('en-CA'));
     });
-    if(opts.onChange) opts.onChange(value, date);
+    if(ready && opts.onChange) opts.onChange(value, date);
   }
   sync();
+  ready = true;
   return {get value(){return value;}, get date(){return date;}, focusAmount(){custom.focus();}};
 }
 
@@ -1046,7 +1048,7 @@ function openMadrasa(id){
     body.appendChild(saveD);
 
     function label(){
-      if(!go) return;
+      if(!go || !pick) return;
       go.disabled = !(pick.value>0);
       go.textContent = pick.value>0 ? 'Save '+rs(pick.value)+'  ·  '+dmy(pick.date) : 'Choose an amount';
     }
@@ -1104,7 +1106,7 @@ function openDonation(mid, did){
     body.appendChild(del);
 
     function label(){
-      if(!go) return;
+      if(!go || !pick) return;
       go.disabled = !(pick.value>0);
       go.textContent = pick.value>0 ? 'Save '+rs(pick.value)+'  ·  '+dmy(pick.date) : 'Choose an amount';
     }
@@ -1162,7 +1164,7 @@ function openEntry(pre){
     if(pre.name||pre.regd) checkDup();
 
     function label(){
-      if(!go) return;
+      if(!go || !pick) return;
       const ok = fName.value.trim().length>1;
       go.disabled = !ok;
       go.textContent = !ok ? 'Enter a name'
