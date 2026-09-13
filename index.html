@@ -1,0 +1,1466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rashid Register</title>
+<meta name="description" content="Madaris donation register - look up any madrasa, see every year you have given, record a new donation.">
+<meta name="theme-color" content="#EDF1EC">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#129534;</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* ============ tokens ============ */
+:root{
+  --ground:#EDF1EC; --surface:#FFFFFF; --sunk:#F5F8F4; --raised:#FFFFFF;
+  --ink:#18241E; --ink2:#485A50; --muted:#76857B; --faint:#A0ADA4;
+  --hair:#E3EAE2; --hair2:#D2DCD1;
+  --green:#206B4C; --green2:#18543B; --green-soft:#E2EFE8; --green-ink:#1A5B3F;
+  --brass:#8A6614; --brass-soft:#F6EED8; --brass-ink:#7A5A11;
+  --rose:#AD3E29; --rose-soft:#FAE7E2;
+  --blue:#3B4F86; --blue-soft:#E9EDF7;
+  --sh-s:0 1px 2px rgba(24,36,30,.05);
+  --sh-m:0 2px 4px rgba(24,36,30,.05), 0 10px 24px -14px rgba(24,36,30,.22);
+  --sh-l:0 -2px 18px -6px rgba(24,36,30,.13);
+  --r-s:10px; --r-m:14px; --r-l:18px;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --ground:#0F1613; --surface:#18211C; --sunk:#141D18; --raised:#1E2823;
+  --ink:#E1EAE4; --ink2:#B2C0B7; --muted:#8B9A91; --faint:#657368;
+  --hair:#26322B; --hair2:#35443A;
+  --green:#5EBB8E; --green2:#7ED3A9; --green-soft:#173023; --green-ink:#84D6AC;
+  --brass:#D3A749; --brass-soft:#2C2411; --brass-ink:#DDB65F;
+  --rose:#E8846C; --rose-soft:#321A15;
+  --blue:#94A7DF; --blue-soft:#1B2239;
+  --sh-s:0 1px 2px rgba(0,0,0,.34);
+  --sh-m:0 2px 4px rgba(0,0,0,.3), 0 12px 28px -16px rgba(0,0,0,.8);
+  --sh-l:0 -2px 20px -6px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --ground:#0F1613; --surface:#18211C; --sunk:#141D18; --raised:#1E2823;
+  --ink:#E1EAE4; --ink2:#B2C0B7; --muted:#8B9A91; --faint:#657368;
+  --hair:#26322B; --hair2:#35443A;
+  --green:#5EBB8E; --green2:#7ED3A9; --green-soft:#173023; --green-ink:#84D6AC;
+  --brass:#D3A749; --brass-soft:#2C2411; --brass-ink:#DDB65F;
+  --rose:#E8846C; --rose-soft:#321A15;
+  --blue:#94A7DF; --blue-soft:#1B2239;
+  --sh-s:0 1px 2px rgba(0,0,0,.34);
+  --sh-m:0 2px 4px rgba(0,0,0,.3), 0 12px 28px -16px rgba(0,0,0,.8);
+  --sh-l:0 -2px 20px -6px rgba(0,0,0,.6);
+}
+
+/* ============ base ============ */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:none;padding:0;cursor:pointer;color:inherit}
+:focus-visible{outline:2.5px solid var(--green);outline-offset:2px;border-radius:6px}
+.money{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.dsp{font-family:"Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.012em}
+.eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+[hidden]{display:none!important}
+
+/* ============ shell ============ */
+#app{max-width:640px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:40;background:var(--ground);padding-top:env(safe-area-inset-top)}
+.top::after{content:"";display:block;height:1px;background:var(--hair)}
+.brandrow{display:flex;align-items:center;gap:11px;padding:14px 18px 10px}
+.wordmark{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;letter-spacing:.17em}
+.tagline{font-size:12px;color:var(--faint)}
+.brandrow .gap{margin-left:auto}
+.chipbtn{
+  height:36px;min-width:36px;padding:0 11px;border-radius:11px;background:var(--surface);
+  box-shadow:var(--sh-s);display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:13.5px;font-weight:500;color:var(--ink2);transition:color .15s,background .15s;
+}
+.chipbtn:hover{color:var(--ink);background:var(--raised)}
+.chipbtn .dot{width:7px;height:7px;border-radius:50%;background:var(--faint);flex:none}
+.chipbtn .dot.ok{background:var(--green)}
+.chipbtn .dot.warn{background:var(--brass)}
+.chipbtn .dot.off{background:var(--hair2)}
+
+.searchrow{padding:0 18px 13px}
+.search{
+  display:flex;align-items:center;gap:10px;height:52px;padding:0 15px;
+  background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-s);
+  transition:box-shadow .16s;
+}
+.search:focus-within{box-shadow:0 0 0 2.5px var(--green), var(--sh-s)}
+.search svg{flex:none;color:var(--faint)}
+#q{flex:1;min-width:0;border:none;background:none;outline:none;font-size:16.5px}
+#q::placeholder{color:var(--faint)}
+.xbtn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--faint);font-size:15px;flex:none}
+.xbtn:hover{background:var(--sunk);color:var(--rose)}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 18px 14px}
+.tile{
+  background:var(--surface);border-radius:var(--r-s);padding:10px 6px 11px;text-align:center;
+  box-shadow:var(--sh-s);transition:transform .12s, box-shadow .15s;
+}
+.tile:hover{box-shadow:var(--sh-m)}
+.tile:active{transform:scale(.975)}
+.tile[aria-pressed="true"]{box-shadow:0 0 0 2px var(--green), var(--sh-s)}
+.tile .n{display:block;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:17px;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile .l{display:block;font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.tile .n.t-ink{color:var(--ink)} .tile .n.t-blue{color:var(--blue)}
+.tile .n.t-rose{color:var(--rose)} .tile .n.t-brass{color:var(--brass)}
+
+/* ============ list ============ */
+main{flex:1;padding:0 18px calc(108px + env(safe-area-inset-bottom))}
+.secthead{display:flex;align-items:baseline;gap:10px;padding:16px 3px 9px}
+.secthead .c{margin-left:auto;font-size:12px;color:var(--faint)}
+.stack{display:flex;flex-direction:column;gap:7px}
+
+.card{
+  background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-s);
+  width:100%;text-align:left;display:block;position:relative;overflow:hidden;
+  transition:transform .12s, box-shadow .15s;
+}
+button.card:hover{box-shadow:var(--sh-m)}
+button.card:active{transform:scale(.993)}
+.card.flag::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3.5px}
+.card.f-given::before{background:var(--green)}
+.card.f-lapsed::before{background:var(--rose)}
+.card.f-regular::before{background:var(--brass)}
+.card.f-none::before{background:var(--hair2)}
+
+.mrow{padding:13px 15px 12px 17px}
+.mrow-top{display:flex;gap:12px;align-items:flex-start}
+.mrow-name{flex:1;min-width:0;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:15px;line-height:1.28;letter-spacing:-.012em}
+.mrow-amt{text-align:right;flex:none}
+.mrow-amt .v{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:15.5px;font-variant-numeric:tabular-nums;color:var(--brass);letter-spacing:-.02em}
+.mrow-amt .k{font-size:10px;color:var(--faint);letter-spacing:.04em;margin-top:1px}
+.mrow-addr{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+.mrow-foot{display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap}
+
+.badge{font-size:10.5px;font-weight:600;letter-spacing:.05em;padding:2.5px 8px;border-radius:99px;white-space:nowrap}
+.b-given{background:var(--green-soft);color:var(--green-ink)}
+.b-lapsed{background:var(--rose-soft);color:var(--rose)}
+.b-regular{background:var(--brass-soft);color:var(--brass-ink)}
+.b-new{background:var(--blue-soft);color:var(--blue)}
+.b-quiet{background:var(--sunk);color:var(--muted)}
+.rno{font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:2.5px 7px;border-radius:6px;background:var(--sunk);color:var(--ink2);white-space:nowrap}
+
+.ydots{display:flex;gap:3.5px;margin-left:auto}
+.ydot{
+  width:26px;height:19px;border-radius:5px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-weight:500;
+  background:var(--sunk);color:var(--faint);
+}
+.ydot.on{background:var(--green-soft);color:var(--green-ink)}
+
+.blank{padding:52px 22px;text-align:center}
+.blank .t{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:17px;margin-bottom:6px}
+.blank .s{color:var(--muted);font-size:14px;max-width:34ch;margin:0 auto}
+
+/* ============ dock ============ */
+.dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:45;pointer-events:none;
+  padding:16px 18px calc(16px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top, var(--ground) 58%, rgba(0,0,0,0));
+}
+.dock .in{max-width:640px;margin:0 auto;display:flex;gap:10px;pointer-events:auto}
+
+/* ============ buttons ============ */
+.btn{
+  width:100%;height:52px;border-radius:var(--r-m);display:flex;align-items:center;
+  justify-content:center;gap:9px;font-size:15px;font-weight:600;
+  background:var(--surface);color:var(--ink);box-shadow:var(--sh-m);
+  transition:transform .1s, filter .15s;
+}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.42;cursor:not-allowed;box-shadow:var(--sh-s)}
+.btn.primary{background:var(--green);color:#fff}
+.btn.primary:hover:not(:disabled){filter:brightness(1.08)}
+.btn.danger{background:var(--rose-soft);color:var(--rose);box-shadow:var(--sh-s)}
+.btn.quiet{background:var(--sunk);box-shadow:none;color:var(--ink2);height:46px;font-size:14px}
+.btn.sm{height:42px;font-size:13.5px;border-radius:var(--r-s)}
+.btnrow{display:flex;gap:10px}
+.btnrow > .btn{flex:1 1 0;min-width:0}
+
+/* ============ sheet ============ */
+.sheet{
+  position:fixed;inset:0;z-index:60;background:var(--ground);overflow-y:auto;
+  overscroll-behavior:contain; animation:slide .2s cubic-bezier(.2,.75,.3,1);
+}
+@keyframes slide{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sheet .wrap{max-width:640px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.sheetbar{
+  position:sticky;top:0;z-index:6;background:var(--ground);
+  display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
+}
+.sheetbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--hair)}
+.sheetbar h2{flex:1;min-width:0;margin:0;font-family:"Bricolage Grotesque",sans-serif;font-size:15px;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.01em}
+.iback{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--ink2);font-size:20px;flex:none}
+.iback:hover{background:var(--sunk);color:var(--ink)}
+.sheetbody{flex:1;padding:18px 18px calc(112px + env(safe-area-inset-bottom))}
+
+/* ============ detail ============ */
+.titleblock{margin-bottom:18px}
+.titleblock h1{
+  margin:0 0 7px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;
+  font-size:24px;line-height:1.17;letter-spacing:-.022em;text-wrap:balance;
+}
+.titleblock .addr{color:var(--ink2);font-size:14px;line-height:1.45}
+.titleblock .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;align-items:center}
+.titleblock a.rno{text-decoration:none}
+
+.panel{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-s);overflow:hidden}
+.panel + .panel, .panel + .btn, .btn + .panel, .panel + .btnrow, .note + .panel{margin-top:13px}
+.panelhead{display:flex;align-items:center;gap:9px;padding:13px 16px 11px}
+.panelhead .r{margin-left:auto;font-size:12px;color:var(--faint);font-weight:400;letter-spacing:0;text-transform:none}
+
+/* history */
+.hist{display:flex;flex-direction:column}
+.hrow{
+  display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:12px;
+  padding:11px 16px;width:100%;text-align:left;position:relative;
+  border-top:1px solid var(--hair);background:none;
+}
+.hrow:hover{background:var(--sunk)}
+.hrow .yr{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);font-weight:500}
+.hrow .bar{height:7px;border-radius:99px;background:var(--brass-soft);position:relative;overflow:hidden;min-width:6px}
+.hrow .bar i{position:absolute;inset:0 auto 0 0;background:var(--brass);border-radius:99px;display:block}
+.hrow .amt{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;letter-spacing:-.015em}
+.hrow .when{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;margin-top:1px;text-align:right}
+.hrow.gap{background:repeating-linear-gradient(135deg,transparent,transparent 6px,var(--sunk) 6px,var(--sunk) 12px)}
+.hrow.gap .yr,.hrow.gap .miss{color:var(--faint)}
+.hrow.gap .miss{font-size:13px}
+.hrow .amt.none{color:var(--rose);font-weight:600;font-size:13px}
+.hrow.thisyear{background:var(--green-soft)}
+.hrow.thisyear .amt{color:var(--green-ink)}
+.hrow .edit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--faint);opacity:0;transition:opacity .15s}
+.hrow:hover .edit{opacity:1}
+
+.summary{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--hair)}
+.summary div{padding:13px 14px;text-align:center}
+.summary div + div{border-left:1px solid var(--hair)}
+.summary .k{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.summary .v{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:19px;margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.022em}
+.summary .v.m{color:var(--brass)}
+
+/* amount picker */
+.amtgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:4px 16px 0}
+.amtcell{position:relative;min-width:0}
+.amt{
+  width:100%;height:54px;border-radius:12px;background:var(--sunk);
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:16px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .13s,color .13s,transform .1s;
+}
+.amt:hover{background:var(--hair)}
+.amt:active{transform:scale(.96)}
+.amt.on{background:var(--green);color:#fff}
+.amtcell .usual{
+  position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  font-size:8.5px;font-weight:700;letter-spacing:.09em;background:var(--brass);color:#fff;
+  padding:2px 6px;border-radius:99px;pointer-events:none;white-space:nowrap;
+}
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:9px 16px 16px}
+.inputs .full{grid-column:1 / -1}
+.inp{
+  width:100%;height:52px;border-radius:12px;background:var(--sunk);
+  padding:0 13px;border:none;outline:none;font-size:15.5px;
+  transition:box-shadow .14s;
+}
+.inp:focus{box-shadow:inset 0 0 0 2px var(--green)}
+.inp.money-in{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+.inp.code{font-family:"IBM Plex Mono",monospace;font-size:14px}
+label.lab{display:block}
+label.lab > span{display:block;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 6px 3px}
+label.lab:focus-within > span{color:var(--green)}
+.datequick{display:flex;gap:7px;padding:0 16px 14px;flex-wrap:wrap}
+.dq{height:34px;padding:0 13px;border-radius:99px;background:var(--sunk);font-size:13px;font-weight:500;color:var(--ink2)}
+.dq:hover{background:var(--hair)}
+.dq.on{background:var(--green-soft);color:var(--green-ink);font-weight:600}
+
+/* fields */
+.fields{display:flex;flex-direction:column}
+.fld{padding:12px 16px;border-top:1px solid var(--hair)}
+.fld:first-child{border-top:none}
+.fld > span{display:block;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.fld input,.fld textarea{width:100%;border:none;background:none;outline:none;font-size:15.5px;padding:0}
+.fld textarea{resize:vertical;min-height:44px;line-height:1.45}
+.fld:focus-within > span{color:var(--green)}
+.fld.code input{font-family:"IBM Plex Mono",monospace;font-size:14.5px}
+
+/* notes */
+.note{
+  display:flex;gap:11px;padding:13px 15px;border-radius:var(--r-m);
+  background:var(--surface);box-shadow:var(--sh-s);font-size:13.5px;line-height:1.5;color:var(--ink2);
+}
+.note + .note{margin-top:10px}
+.note .ic{flex:none;font-size:15px;line-height:1.35}
+.note b{color:var(--ink);font-weight:600}
+.note.warn{background:var(--rose-soft);box-shadow:none;color:var(--rose)}
+.note.warn b{color:var(--rose)}
+.note.good{background:var(--green-soft);box-shadow:none;color:var(--green-ink)}
+.note.good b{color:var(--green-ink)}
+.note.brass{background:var(--brass-soft);box-shadow:none;color:var(--brass-ink)}
+.note.brass b{color:var(--brass-ink)}
+
+/* candidates */
+.cand{width:100%;text-align:left;padding:13px 16px;border-top:1px solid var(--hair);background:none;display:block}
+.cand:first-of-type{border-top:none}
+.cand:hover{background:var(--sunk)}
+.cand .n{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:14.5px;line-height:1.28}
+.cand .a{font-size:12.5px;color:var(--muted);margin-top:2px}
+.cand .h{font-size:12px;color:var(--green);font-weight:500;margin-top:5px}
+
+/* pair review */
+.pair{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-s);overflow:hidden}
+.pair + .pair{margin-top:11px}
+.pside{padding:13px 16px}
+.pside + .pside{border-top:1px dashed var(--hair2)}
+.pside .n{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:14px}
+.pside .a{font-size:12.5px;color:var(--muted);margin-top:2px}
+.pside .y{font-size:11.5px;color:var(--faint);margin-top:5px;font-variant-numeric:tabular-nums}
+.pacts{display:flex;gap:9px;padding:12px 16px 14px;border-top:1px solid var(--hair)}
+.pacts .btn{height:44px;font-size:14px}
+
+/* rows of stats */
+.srow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--hair);font-size:14px}
+.srow:first-child{border-top:none}
+.srow .v{margin-left:auto;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.015em}
+.srow .v.m{color:var(--brass)}
+
+/* sticky action */
+.actionbar{
+  position:sticky;bottom:0;z-index:8;margin:18px -18px 0;
+  padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--ground) 62%,rgba(0,0,0,0));
+}
+.actionbar .in{max-width:604px;margin:0 auto}
+
+/* toast */
+#toasts{position:fixed;left:0;right:0;bottom:calc(104px + env(safe-area-inset-bottom));z-index:95;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{
+  background:var(--ink);color:var(--ground);padding:11px 18px;border-radius:99px;
+  font-size:13.5px;font-weight:500;box-shadow:var(--sh-m);max-width:88vw;
+  animation:slide .2s; text-align:center;
+}
+.toast.bad{background:var(--rose);color:#fff}
+
+/* setup */
+.hero-setup{text-align:center;padding:26px 6px 22px}
+.hero-setup .mark{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;letter-spacing:.17em;margin-bottom:8px}
+.hero-setup p{color:var(--muted);font-size:14.5px;margin:0 auto;max-width:36ch;line-height:1.55}
+.spin{width:15px;height:15px;border:2.5px solid var(--hair2);border-top-color:var(--green);border-radius:50%;animation:sp .7s linear infinite;flex:none;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+</style>
+</head>
+<body>
+
+<div id="app" hidden>
+  <div class="top">
+    <div class="brandrow">
+      <span class="wordmark">RASHID</span>
+      <span class="tagline">Madaris Register</span>
+      <span class="gap"></span>
+      <button class="chipbtn" id="btnSync" title="Where your register is saved"><span class="dot off" id="syncDot"></span><span id="syncTxt">Local</span></button>
+      <button class="chipbtn" id="btnStats" title="Totals, lists and export" aria-label="Totals and export">&#8377;</button>
+      <button class="chipbtn" id="btnTheme" title="Light or dark" aria-label="Switch theme">&#9681;</button>
+    </div>
+    <div class="searchrow">
+      <div class="search">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.7" stroke="currentColor" stroke-width="1.7"/><path d="M10.7 10.7 14 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <input id="q" placeholder="Name, Regd No, address or phone" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+        <button class="xbtn" id="qx" hidden aria-label="Clear search">&#10005;</button>
+      </div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+  <main>
+    <div class="secthead"><span class="eyebrow" id="secTitle">Recent</span><span class="c" id="secCount"></span></div>
+    <div class="stack" id="list"></div>
+  </main>
+
+  <div class="dock"><div class="in">
+    <button class="btn" id="btnPhoto">&#128247;&nbsp; From photo</button>
+    <button class="btn primary" id="btnType">&#10010;&nbsp; New entry</button>
+  </div></div>
+</div>
+
+<div id="boot" class="sheet" style="animation:none">
+  <div class="wrap"><div class="sheetbody">
+    <div class="hero-setup">
+      <div class="mark">RASHID</div>
+      <p id="bootMsg">Opening your register&hellip;</p>
+    </div>
+    <div id="bootBody"></div>
+  </div></div>
+</div>
+
+<div id="sheets"></div>
+<div id="toasts"></div>
+
+<script>
+"use strict";
+(function(){
+/* ==================================================================
+   Rashid Register - a static page. Your data is never sent anywhere
+   except the private GitHub repository you point it at yourself.
+   ================================================================== */
+
+const $  = s => document.querySelector(s);
+const el = (t,c,x)=>{ const n=document.createElement(t); if(c)n.className=c; if(x!=null)n.textContent=x; return n; };
+const YEAR = new Date().getFullYear();
+const TODAY = () => new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD, local time
+
+const rs  = n => '₹' + Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:0});
+const dmy = d => d ? d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(2,4) : '';
+const dm  = d => d ? d.slice(8,10)+'/'+d.slice(5,7) : '';
+
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem('rashid.'+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem('rashid.'+k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem('rashid.'+k); }catch(e){} }
+};
+
+/* ============ register ============ */
+let REG = null;          // {version, updated, madaris[], reviewPairs[], reviewDecisions{}}
+let MAD = [];            // resolved + indexed
+let sha = null;          // github blob sha
+let dirty = false, pushing = false, pushTimer = null;
+
+const GEO = {UP:'UTTAR PRADESH',TS:'TELANGANA',WB:'WEST BENGAL',BIHARR:'BIHAR',
+             JHANRKHAND:'JHARKHAND',JHARKAND:'JHARKHAND',HYDRABAD:'HYDERABAD',BANGAL:'BENGAL'};
+function nrm(s){
+  s = String(s==null?'':s).toUpperCase().replace(/[^A-Z0-9 ]/g,' ')
+      .replace(/\bMAD(?:AR|R)ASS?A\b|\bMADARSA\b|\bMADRSA\b/g,'MADRASA')
+      .replace(/\bUL(?:U|O)O?M\b/g,'ULOOM')
+      .replace(/\bQURAAN\b/g,'QURAN');
+  for(const k in GEO) s = s.replace(new RegExp('\\b'+k+'\\b','g'), GEO[k]);
+  return s.replace(/\s+/g,' ').trim();
+}
+function nregd(s){
+  const t = String(s==null?'':s).toUpperCase().replace(/[^A-Z0-9/\-]/g,'').replace(/-/g,'/').replace(/\/+/g,'/');
+  return t.replace(/^\/|\/$/g,'');
+}
+const nphone = s => String(s==null?'':s).replace(/\D/g,'').slice(-10);
+function bgs(s){ s=String(s).replace(/ /g,''); const o=new Set(); for(let i=0;i<s.length-1;i++)o.add(s.slice(i,i+2)); return o; }
+function dice(a,b){ if(!a.size||!b.size) return 0; let h=0; a.forEach(g=>{if(b.has(g))h++;}); return 2*h/(a.size+b.size); }
+const ASTOP = new Set(['INDIA','DISTT','DIST','NEAR','ROAD','TOWN','THE','AND','POST']);
+const atoks = s => new Set(nrm(s).split(' ').filter(w=>w.length>3 && !ASTOP.has(w)));
+
+function donId(m,d,i){ return d.id || (m.id+':'+d.year+':'+i); }
+
+function reindex(){
+  MAD = [];
+  const live = REG.madaris.filter(m=>!m.mergedInto && !m.deleted);
+  const byId = new Map(REG.madaris.map(m=>[m.id,m]));
+  // fold merged records into their target
+  const extra = new Map();
+  REG.madaris.forEach(m=>{
+    if(!m.mergedInto) return;
+    const t = byId.get(m.mergedInto);
+    if(!t || t.mergedInto) return;
+    if(!extra.has(t.id)) extra.set(t.id, []);
+    extra.get(t.id).push(m);
+  });
+  live.forEach(src=>{
+    const m = Object.assign({}, src);
+    m.altNames = (src.altNames||[]).slice();
+    m.altAddresses = (src.altAddresses||[]).slice();
+    m.altRegds = (src.altRegds||[]).slice();
+    m.donations = (src.donations||[]).map((d,i)=>Object.assign({}, d, {id:donId(src,d,i)}));
+    (extra.get(src.id)||[]).forEach(g=>{
+      (g.donations||[]).forEach((d,i)=> m.donations.push(Object.assign({}, d, {id:donId(g,d,i)})));
+      if(g.name && g.name!==m.name) m.altNames.push(g.name);
+      if(g.address && g.address!==m.address) m.altAddresses.push(g.address);
+      if(g.regd && g.regd!==m.regd) m.altRegds.push(g.regd);
+      if(!m.phone && g.phone) m.phone = g.phone;
+    });
+    m.altNames = [...new Set(m.altNames)];
+    m.altAddresses = [...new Set(m.altAddresses)];
+    m.altRegds = [...new Set(m.altRegds)];
+    m.donations.sort((a,b)=> (a.date||String(a.year)).localeCompare(b.date||String(b.year)));
+
+    const paid = m.donations.filter(d=>d.amount!=null && d.amount!=='');
+    m.total = paid.reduce((s,d)=>s+Number(d.amount),0);
+    m.years = [...new Set(m.donations.map(d=>Number(d.year)))].sort();
+    m.lastYear = m.years.length ? m.years[m.years.length-1] : null;
+    m.lastAmount = paid.length ? Number(paid[paid.length-1].amount) : null;
+    m.thisYear = m.donations.filter(d=>Number(d.year)===YEAR);
+    m.thisYearTotal = m.thisYear.reduce((s,d)=>s+Number(d.amount||0),0);
+    m.gave = m.thisYear.some(d=>d.amount!=null && d.amount!=='');
+    m.priorYears = m.years.filter(y=>y<YEAR).length;
+    const tally = {};
+    paid.forEach(d=>{ tally[d.amount] = (tally[d.amount]||0)+1; });
+    m.usual = paid.length ? Number(Object.keys(tally).sort((a,b)=> tally[b]-tally[a] || Number(b)-Number(a))[0]) : null;
+    m.maxAmount = paid.length ? Math.max(...paid.map(d=>Number(d.amount))) : 0;
+    m.status = m.gave ? 'given' : (m.lastYear===YEAR-1 ? 'lapsed' : (m.priorYears>=3 ? 'regular' : (m.years.length ? 'quiet' : 'new')));
+    m.regular = m.priorYears>=3;
+
+    const allNames = [m.name].concat(m.altNames).filter(Boolean);
+    const allAddr  = [m.address].concat(m.altAddresses).filter(Boolean);
+    m._n = nrm(allNames.join(' '));
+    m._bgv = allNames.map(v=>bgs(nrm(v)));
+    m._tok = new Set((m._n+' '+nrm(allAddr.join(' '))).split(' ').filter(w=>w.length>1));
+    m._atok = atoks(allAddr.join(' '));
+    m._r = [m.regd].concat(m.altRegds).map(nregd).filter(Boolean);
+    m._p = nphone(m.phone);
+    MAD.push(m);
+  });
+  MAD.sort((a,b)=> a.name.localeCompare(b.name));
+}
+
+function search(raw){
+  const qq = String(raw||'').trim();
+  if(!qq) return [];
+  const qr = nregd(qq), qp = nphone(qq), qn = nrm(qq);
+  const terms = qn.split(' ').filter(Boolean);
+  const qbg = bgs(qn);
+  const out = [];
+  for(const m of MAD){
+    let sc = 0, why = '';
+    if(qr.length>=2){
+      for(const r of m._r){
+        if(r===qr){ sc=Math.max(sc,1000); why='Regd No'; }
+        else if(qr.length>=3 && r.startsWith(qr)){ sc=Math.max(sc,900); why='Regd No'; }
+        else if(qr.length>=4 && r.includes(qr)){ sc=Math.max(sc,860); why='Regd No'; }
+      }
+    }
+    if(qp.length>=4 && m._p && m._p.includes(qp)){ sc=Math.max(sc,950); why='Phone'; }
+    if(terms.length){
+      let ok = true, tot = 0;
+      for(const t of terms){
+        let best = 0;
+        for(const w of m._tok){
+          if(w===t) best=Math.max(best,10);
+          else if(w.startsWith(t)) best=Math.max(best,8);
+          else if(t.length>=4 && w.includes(t)) best=Math.max(best,5);
+        }
+        if(!best){ ok=false; break; }
+        tot += best;
+      }
+      if(ok){
+        let s = 300 + tot*8;
+        if(m._n.startsWith(qn)) s += 160;
+        if(s>sc){ sc=s; why=why||''; }
+      }
+    }
+    if(sc===0 && qn.length>=4){
+      let d = 0;
+      for(const v of m._bgv) d = Math.max(d, dice(qbg, v));
+      if(d>=0.55){ sc = Math.round(d*520); why='Close spelling'; }
+    }
+    if(sc>0) out.push({m, sc, why});
+  }
+  out.sort((a,b)=> b.sc-a.sc || b.m.total-a.m.total || a.m.name.localeCompare(b.m.name));
+  return out.slice(0,60);
+}
+
+/* ============ persistence ============ */
+function stamp(){ REG.updated = new Date().toISOString(); }
+function saveLocal(){ LS.set('register', REG); }
+function touch(){ stamp(); saveLocal(); reindex(); dirty = true; schedulePush(); }
+
+const GH = {
+  cfg(){ return LS.get('gh', null); },
+  set(c){ LS.set('gh', c); },
+  clear(){ LS.del('gh'); },
+  async api(path, opt){
+    const c = this.cfg();
+    const r = await fetch('https://api.github.com'+path, Object.assign({}, opt, {
+      headers: Object.assign({
+        'Authorization':'Bearer '+c.token,
+        'Accept':'application/vnd.github+json',
+        'X-GitHub-Api-Version':'2022-11-28'
+      }, (opt&&opt.headers)||{})
+    }));
+    return r;
+  },
+  file(){ const c=this.cfg(); return '/repos/'+c.owner+'/'+c.repo+'/contents/'+(c.path||'register.json'); },
+  async pull(){
+    const r = await this.api(this.file()+'?ref='+encodeURIComponent(this.cfg().branch||'main'), {cache:'no-store'});
+    if(r.status===404) return {missing:true};
+    if(!r.ok) throw new Error('GitHub said '+r.status+(r.status===401?' - the token was rejected':''));
+    const j = await r.json();
+    sha = j.sha;
+    return {data: JSON.parse(decodeB64(j.content))};
+  },
+  async push(reg){
+    const c = this.cfg();
+    const body = {
+      message:'Register updated '+new Date().toLocaleString('en-IN'),
+      content: encodeB64(JSON.stringify(reg,null,1)),
+      branch: c.branch||'main'
+    };
+    if(sha) body.sha = sha;
+    const r = await this.api(this.file(), {method:'PUT', body:JSON.stringify(body)});
+    if(r.status===409 || r.status===422) return {conflict:true};
+    if(!r.ok) throw new Error('GitHub said '+r.status);
+    const j = await r.json();
+    sha = j.content && j.content.sha;
+    return {ok:true};
+  }
+};
+function encodeB64(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin=''; const CH=0x8000;
+  for(let i=0;i<bytes.length;i+=CH) bin += String.fromCharCode.apply(null, bytes.subarray(i,i+CH));
+  return btoa(bin);
+}
+function decodeB64(b64){
+  const bin = atob(String(b64).replace(/\s/g,''));
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+/* merge two registers without losing anything either side recorded */
+function mergeRegisters(mine, theirs){
+  const out = JSON.parse(JSON.stringify(theirs));
+  const byId = new Map(out.madaris.map(m=>[m.id,m]));
+  mine.madaris.forEach(m=>{
+    const t = byId.get(m.id);
+    if(!t){ out.madaris.push(JSON.parse(JSON.stringify(m))); return; }
+    const seen = new Set((t.donations||[]).map((d,i)=>donId(t,d,i)));
+    (m.donations||[]).forEach((d,i)=>{
+      if(!seen.has(donId(m,d,i))) t.donations.push(Object.assign({}, d));
+    });
+    ['phone','notes','regd','address','name'].forEach(k=>{
+      if((!t[k] || t[k]==='') && m[k]) t[k]=m[k];
+    });
+    if(m.mergedInto && !t.mergedInto) t.mergedInto = m.mergedInto;
+    if(m.deleted) t.deleted = true;
+  });
+  out.reviewDecisions = Object.assign({}, theirs.reviewDecisions||{}, mine.reviewDecisions||{});
+  out.updated = new Date().toISOString();
+  return out;
+}
+
+function schedulePush(){
+  syncBadge();
+  if(!GH.cfg()) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushNow, 1200);
+}
+async function pushNow(){
+  if(!GH.cfg() || pushing || !dirty) return;
+  pushing = true; syncBadge();
+  try{
+    let res = await GH.push(REG);
+    if(res.conflict){
+      const remote = await GH.pull();
+      if(remote.data){
+        REG = mergeRegisters(REG, remote.data);
+        saveLocal(); reindex(); render();
+      }
+      res = await GH.push(REG);
+      if(res.conflict) throw new Error('could not settle a conflicting change');
+    }
+    dirty = false;
+  }catch(e){
+    console.warn(e);
+    toast(String(e.message||e), true);
+  }finally{
+    pushing = false; syncBadge();
+  }
+}
+function syncBadge(){
+  const dot = $('#syncDot'), txt = $('#syncTxt');
+  if(!GH.cfg()){ dot.className='dot off'; txt.textContent='This device'; return; }
+  if(pushing){ dot.className='dot warn'; txt.textContent='Saving'; return; }
+  if(dirty){ dot.className='dot warn'; txt.textContent='Unsaved'; return; }
+  dot.className='dot ok'; txt.textContent='Synced';
+}
+
+/* ============ mutations ============ */
+function findRaw(id){ return REG.madaris.find(m=>m.id===id); }
+function recordDonation(id, amount, date, note, photo){
+  const m = findRaw(id); if(!m) return;
+  m.donations = m.donations||[];
+  m.donations.push({
+    id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    year:Number(String(date).slice(0,4)), amount:Number(amount), date:String(date),
+    src:'app', note:note||'', photo:photo||'', ts:Date.now()
+  });
+  touch();
+}
+function updateDonation(mid, did, patch){
+  const m = findRaw(mid); if(!m) return;
+  const d = (m.donations||[]).find((x,i)=>donId(m,x,i)===did);
+  if(!d) return;
+  Object.assign(d, patch);
+  if(patch.date) d.year = Number(String(patch.date).slice(0,4));
+  touch();
+}
+function deleteDonation(mid, did){
+  const m = findRaw(mid); if(!m) return;
+  m.donations = (m.donations||[]).filter((x,i)=>donId(m,x,i)!==did);
+  touch();
+}
+function patchMadrasa(id, patch){
+  const m = findRaw(id);
+  if(m) Object.assign(m, patch);
+  else REG.madaris.push(Object.assign({id, name:'', address:'', regd:'', phone:'', notes:'',
+                                       altNames:[], altAddresses:[], altRegds:[], donations:[]}, patch));
+  touch();
+}
+
+/* ============ UI: toast + sheets ============ */
+function toast(msg, bad){
+  const t = el('div','toast'+(bad?' bad':''), msg);
+  $('#toasts').appendChild(t);
+  setTimeout(()=>t.remove(), bad?4200:2500);
+}
+function sheet(title, build){
+  const s = el('div','sheet');
+  const wrap = el('div','wrap');
+  const bar = el('div','sheetbar');
+  const back = el('button','iback','←'); back.type='button'; back.setAttribute('aria-label','Back');
+  const h = el('h2',null,title);
+  bar.append(back,h); wrap.appendChild(bar);
+  const body = el('div','sheetbody'); wrap.appendChild(body);
+  s.appendChild(wrap); $('#sheets').appendChild(s);
+  const close = ()=>{ s.remove(); document.removeEventListener('keydown', onKey); };
+  function onKey(e){ if(e.key==='Escape'){ e.stopPropagation(); close(); } }
+  back.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  build(body, close, {setTitle:t=>{h.textContent=t;}, sheet:s});
+  return close;
+}
+function actionBar(body, btn){
+  const b = el('div','actionbar'); const i = el('div','in');
+  i.appendChild(btn); b.appendChild(i); body.appendChild(b);
+  return b;
+}
+function noteBox(kind, icon, boldText, rest){
+  const n = el('div','note'+(kind?' '+kind:''));
+  if(icon) n.appendChild(el('span','ic',icon));
+  const t = el('div');
+  if(boldText) t.appendChild(el('b',null,boldText));
+  if(rest) t.appendChild(document.createTextNode(rest));
+  n.appendChild(t);
+  return n;
+}
+function panel(headText, rightText){
+  const p = el('div','panel');
+  if(headText){
+    const h = el('div','panelhead');
+    h.appendChild(el('span','eyebrow',headText));
+    if(rightText) h.appendChild(el('span','r',rightText));
+    p.appendChild(h);
+  }
+  return p;
+}
+
+/* ============ list ============ */
+let query = '', view = 'recent';
+
+function statusBadge(m){
+  if(m.status==='given') return ['b-given','Gave '+rs(m.thisYearTotal)];
+  if(m.status==='lapsed') return ['b-lapsed','Lapsed'];
+  if(m.regular) return ['b-regular','Regular ×'+m.priorYears];
+  if(!m.years.length) return ['b-new','New'];
+  return null;
+}
+function yearsSpan(){
+  const ys = new Set([YEAR]);
+  MAD.forEach(m=>m.years.forEach(y=>ys.add(y)));
+  return [...ys].sort().slice(-5);
+}
+function madCard(m, why){
+  const b = el('button','card flag f-'+(m.status==='quiet'?'none':m.status));
+  b.type='button';
+  const r = el('div','mrow');
+  const top = el('div','mrow-top');
+  top.appendChild(el('div','mrow-name', m.name || '(no name)'));
+  if(m.lastAmount!=null){
+    const a = el('div','mrow-amt');
+    a.appendChild(el('div','v', rs(m.gave ? m.thisYearTotal : m.lastAmount)));
+    a.appendChild(el('div','k', m.gave ? String(YEAR) : 'last · '+m.lastYear));
+    top.appendChild(a);
+  }
+  r.appendChild(top);
+  if(m.address) r.appendChild(el('div','mrow-addr', m.address));
+  const foot = el('div','mrow-foot');
+  if(m.regd) foot.appendChild(el('span','rno', m.regd));
+  if(m.phone) foot.appendChild(el('span','rno', m.phone));
+  const sb = statusBadge(m);
+  if(sb) foot.appendChild(el('span','badge '+sb[0], sb[1]));
+  if(why) foot.appendChild(el('span','badge b-quiet', why));
+  const dots = el('div','ydots');
+  yearsSpan().forEach(y=> dots.appendChild(el('span','ydot'+(m.years.includes(y)?' on':''), String(y).slice(2))));
+  foot.appendChild(dots);
+  r.appendChild(foot);
+  b.appendChild(r);
+  b.addEventListener('click', ()=>openMadrasa(m.id));
+  return b;
+}
+
+function listFor(){
+  if(query){
+    const r = search(query);
+    return {title:'Results', items:r.map(x=>x.m), why:r.map(x=>x.why)};
+  }
+  if(view==='given')   return {title:'Given in '+YEAR, items: MAD.filter(m=>m.gave).sort((a,b)=>lastTs(b)-lastTs(a))};
+  if(view==='lapsed')  return {title:'Gave last year, not yet this year', items: MAD.filter(m=>m.status==='lapsed').sort((a,b)=>(b.lastAmount||0)-(a.lastAmount||0))};
+  if(view==='total')   return {title:'Given in '+YEAR+', largest first', items: MAD.filter(m=>m.gave).sort((a,b)=>b.thisYearTotal-a.thisYearTotal)};
+  if(view==='all')     return {title:'Every madrasa, A to Z', items: MAD};
+  const recent = MAD.filter(m=>m.donations.some(d=>d.src==='app')).sort((a,b)=>lastTs(b)-lastTs(a));
+  if(recent.length) return {title:'Recently recorded', items: recent.slice(0,40)};
+  return {title:'Your regular madaris', items: MAD.filter(m=>m.regular).sort((a,b)=>b.total-a.total).slice(0,40), hint:true};
+}
+function lastTs(m){
+  let t = 0;
+  m.donations.forEach(d=>{ if(d.src==='app') t = Math.max(t, d.ts||0); });
+  return t;
+}
+
+function render(){
+  const given = MAD.filter(m=>m.gave);
+  const tiles = [
+    ['all',    String(MAD.length),                     'Madaris',      't-ink'],
+    ['given',  String(given.length),                   'Given '+YEAR,  't-blue'],
+    ['lapsed', String(MAD.filter(m=>m.status==='lapsed').length), 'Lapsed', 't-rose'],
+    ['total',  rs(given.reduce((s,m)=>s+m.thisYearTotal,0)), 'Total '+YEAR, 't-brass']
+  ];
+  const box = $('#tiles'); box.textContent='';
+  tiles.forEach(([k,n,l,c])=>{
+    const b = el('button','tile'); b.type='button';
+    b.setAttribute('aria-pressed', String(!query && view===k));
+    b.appendChild(el('span','n '+c, n));
+    b.appendChild(el('span','l', l));
+    b.addEventListener('click', ()=>{
+      $('#q').value=''; query=''; $('#qx').hidden=true;
+      view = (view===k) ? 'recent' : k;
+      render(); window.scrollTo({top:0, behavior:'smooth'});
+    });
+    box.appendChild(b);
+  });
+
+  const {title, items, why, hint} = listFor();
+  $('#secTitle').textContent = title;
+  $('#secCount').textContent = items.length ? items.length + (items.length===1?' madrasa':' madaris') : '';
+  const list = $('#list'); list.textContent='';
+  if(!items.length){
+    const b = el('div','blank');
+    b.appendChild(el('div','t', query ? 'No match for “'+query+'”' : 'Nothing here yet'));
+    b.appendChild(el('div','s', query ? 'Try fewer words, or part of the Regd No.' : 'Record a donation and it will appear here.'));
+    if(query){
+      const add = el('button','btn primary sm','Add “'+query+'” as new');
+      add.type='button'; add.style.marginTop='18px'; add.style.maxWidth='280px'; add.style.marginInline='auto';
+      add.addEventListener('click', ()=>openEntry({name:query}));
+      b.appendChild(add);
+    }
+    list.appendChild(b);
+  }else{
+    const frag = document.createDocumentFragment();
+    items.forEach((m,i)=> frag.appendChild(madCard(m, why?why[i]:'')));
+    list.appendChild(frag);
+    if(hint){
+      const n = el('div','blank'); n.style.padding='26px 22px';
+      n.appendChild(el('div','s','Search above to reach any of your '+MAD.length+' madaris.'));
+      list.appendChild(n);
+    }
+  }
+  syncBadge();
+}
+
+/* ============ amount + date picker ============ */
+function amountPicker(container, opts){
+  const usual = opts.usual;
+  const presets = [50,100,200,500];
+  if(usual!=null && !presets.includes(usual)) presets[3] = usual;
+  let value = opts.initial!=null ? opts.initial : (usual!=null ? usual : null);
+  let date  = opts.date || TODAY();
+
+  const grid = el('div','amtgrid');
+  const btns = [];
+  presets.forEach(v=>{
+    const cell = el('div','amtcell');
+    const b = el('button','amt'+(v===value?' on':''), rs(v));
+    b.type='button'; b.dataset.v = v;
+    b.addEventListener('click', ()=>{ value = v; custom.value=''; sync(); });
+    cell.appendChild(b);
+    if(v===usual) cell.appendChild(el('span','usual','USUAL'));
+    btns.push(b); grid.appendChild(cell);
+  });
+  container.appendChild(grid);
+
+  const inputs = el('div','inputs');
+  const lAmt = el('label','lab'); lAmt.appendChild(el('span',null,'Amount'));
+  const custom = document.createElement('input');
+  custom.type='number'; custom.inputMode='numeric'; custom.min='0'; custom.className='inp money-in';
+  custom.placeholder='Other';
+  if(value!=null && !presets.includes(value)) custom.value = value;
+  custom.addEventListener('input', ()=>{ value = custom.value===''?null:Number(custom.value); sync(true); });
+  lAmt.appendChild(custom);
+
+  const lDate = el('label','lab'); lDate.appendChild(el('span',null,'Date given'));
+  const dinp = document.createElement('input');
+  dinp.type='date'; dinp.className='inp'; dinp.value = date; dinp.max = TODAY();
+  dinp.addEventListener('change', ()=>{ date = dinp.value || TODAY(); sync(); });
+  lDate.appendChild(dinp);
+
+  inputs.append(lAmt, lDate);
+  container.appendChild(inputs);
+
+  const quick = el('div','datequick');
+  const shifts = [['Today',0],['Yesterday',-1],['2 days ago',-2]];
+  const qbtns = [];
+  shifts.forEach(([label,off])=>{
+    const b = el('button','dq',label); b.type='button';
+    b.addEventListener('click', ()=>{
+      const d = new Date(); d.setDate(d.getDate()+off);
+      date = d.toLocaleDateString('en-CA'); dinp.value = date; sync();
+    });
+    qbtns.push([b,off]); quick.appendChild(b);
+  });
+  container.appendChild(quick);
+
+  function sync(skipCustom){
+    btns.forEach(b=> b.classList.toggle('on', value!=null && Number(b.dataset.v)===value));
+    if(!skipCustom) custom.value = (value!=null && !presets.includes(value)) ? value : '';
+    const t = TODAY();
+    qbtns.forEach(([b,off])=>{
+      const d = new Date(); d.setDate(d.getDate()+off);
+      b.classList.toggle('on', date===d.toLocaleDateString('en-CA'));
+    });
+    if(opts.onChange) opts.onChange(value, date);
+  }
+  sync();
+  return {get value(){return value;}, get date(){return date;}, focusAmount(){custom.focus();}};
+}
+
+/* ============ madrasa detail ============ */
+function openMadrasa(id){
+  const m = MAD.find(x=>x.id===id);
+  if(!m) return;
+  sheet(m.name, (body, close)=>{
+    const tb = el('div','titleblock');
+    tb.appendChild(el('h1',null,m.name));
+    if(m.address) tb.appendChild(el('div','addr', m.address));
+    const meta = el('div','meta');
+    if(m.regd) meta.appendChild(el('span','rno','Regd '+m.regd));
+    m.altRegds.forEach(r=> meta.appendChild(el('span','rno','Regd '+r)));
+    if(m.phone){
+      const a = document.createElement('a');
+      a.className='rno'; a.href='tel:'+m.phone; a.textContent='☎ '+m.phone;
+      meta.appendChild(a);
+    }
+    const sb = statusBadge(m);
+    if(sb) meta.appendChild(el('span','badge '+sb[0], sb[1]));
+    tb.appendChild(meta);
+    body.appendChild(tb);
+
+    if(m.altNames.length)
+      body.appendChild(noteBox('', '✎', 'Also written as ', m.altNames.join(' · ')));
+
+    /* ---- history ---- */
+    const hp = panel('Giving history', m.years.length + (m.years.length===1?' year':' years'));
+    const hist = el('div','hist');
+    const span = [...new Set(yearsSpan().concat(m.years))].sort();
+    const peak = Math.max(m.maxAmount, 1);
+    span.forEach(y=>{
+      const ds = m.donations.filter(d=>Number(d.year)===y);
+      if(!ds.length){
+        const r = el('div','hrow gap');
+        r.appendChild(el('div','yr', String(y)));
+        r.appendChild(el('div','miss','not given'));
+        r.appendChild(el('div','amt none','—'));
+        hist.appendChild(r);
+        return;
+      }
+      ds.forEach((d,i)=>{
+        const r = el('button','hrow'+(y===YEAR?' thisyear':'')); r.type='button';
+        r.appendChild(el('div','yr', i===0?String(y):''));
+        const mid = el('div');
+        const bar = el('div','bar');
+        const fill = el('i');
+        fill.style.width = Math.max(5, Math.round(Number(d.amount||0)/peak*100))+'%';
+        bar.appendChild(fill); mid.appendChild(bar);
+        r.appendChild(mid);
+        const right = el('div');
+        right.appendChild(el('div','amt', d.amount!=null? rs(d.amount):'—'));
+        right.appendChild(el('div','when', dmy(d.date)));
+        r.appendChild(right);
+        r.appendChild(el('span','edit','edit'));
+        r.addEventListener('click', ()=>{ close(); openDonation(m.id, d.id); });
+        hist.appendChild(r);
+      });
+    });
+    hp.appendChild(hist);
+    const sm = el('div','summary');
+    [['Total given', rs(m.total), true],
+     ['Usual amount', m.usual!=null?rs(m.usual):'—', true],
+     ['Years given', String(m.years.length), false]].forEach(([k,v,money])=>{
+      const d = el('div');
+      d.appendChild(el('div','k',k));
+      d.appendChild(el('div','v'+(money?' m':''),v));
+      sm.appendChild(d);
+    });
+    hp.appendChild(sm);
+    body.appendChild(hp);
+
+    if(m.gave){
+      const dates = m.thisYear.filter(d=>d.date).map(d=>dmy(d.date)).join(', ');
+      body.appendChild(noteBox('brass','⚠', 'Already recorded this year. ',
+        rs(m.thisYearTotal)+(dates?' on '+dates:'')+'. Save again only if this is a second visit.'));
+    }
+
+    /* ---- record ---- */
+    const rp = panel('Record a donation');
+    const pick = amountPicker(rp, {usual:m.usual, onChange:()=>label()});
+    body.appendChild(rp);
+
+    /* ---- details ---- */
+    const dp = panel('Details');
+    const f = el('div','fields');
+    const fPhone = fieldInto(f,'Phone', m.phone, 'tel', true);
+    const fRegd  = fieldInto(f,'Regd No', m.regd, 'text', true);
+    const fAddr  = fieldInto(f,'Address', m.address, 'text');
+    const fNotes = fieldInto(f,'Notes', m.notes, 'area');
+    dp.appendChild(f);
+    body.appendChild(dp);
+
+    const saveD = el('button','btn quiet','Save details'); saveD.type='button';
+    saveD.style.marginTop='11px';
+    saveD.addEventListener('click', ()=>{
+      patchMadrasa(m.id, {phone:fPhone.value.trim(), regd:fRegd.value.trim(),
+                          address:fAddr.value.trim(), notes:fNotes.value.trim()});
+      toast('Details saved'); render();
+    });
+    body.appendChild(saveD);
+
+    const go = el('button','btn primary'); go.type='button';
+    function label(){
+      go.disabled = !(pick.value>0);
+      go.textContent = pick.value>0 ? 'Save '+rs(pick.value)+'  ·  '+dmy(pick.date) : 'Choose an amount';
+    }
+    label();
+    go.addEventListener('click', ()=>{
+      if(!(pick.value>0)) return;
+      recordDonation(m.id, pick.value, pick.date);
+      toast('Saved '+rs(pick.value)+' · '+shortName(m.name));
+      close(); render();
+    });
+    actionBar(body, go);
+  });
+}
+const shortName = n => String(n).split(' ').slice(0,3).join(' ');
+
+function fieldInto(container, label, value, type, mono){
+  const f = el('div','fld'+(mono?' code':''));
+  f.appendChild(el('span',null,label));
+  const i = type==='area' ? document.createElement('textarea') : document.createElement('input');
+  if(type && type!=='area') i.type = type;
+  if(type==='tel') i.inputMode='tel';
+  i.value = value||'';
+  f.appendChild(i); container.appendChild(f);
+  return i;
+}
+
+/* ============ edit one donation ============ */
+function openDonation(mid, did){
+  const m = MAD.find(x=>x.id===mid); if(!m) return;
+  const d = m.donations.find(x=>x.id===did); if(!d) return;
+  sheet('Edit entry', (body, close)=>{
+    const tb = el('div','titleblock');
+    tb.appendChild(el('h1',null,m.name));
+    tb.appendChild(el('div','addr', 'Entry from '+(d.date?dmy(d.date):d.year)+(d.src==='xlsx'?'  ·  came from your Excel sheet':'')));
+    body.appendChild(tb);
+
+    const p = panel('Amount and date');
+    const pick = amountPicker(p, {usual:m.usual, initial:Number(d.amount), date:d.date||(d.year+'-01-01'), onChange:()=>label()});
+    body.appendChild(p);
+
+    const np = panel('Note');
+    const nf = el('div','fields');
+    const fNote = fieldInto(nf,'Note on this entry', d.note||'', 'text');
+    np.appendChild(nf); body.appendChild(np);
+
+    const del = el('button','btn danger','Delete this entry'); del.type='button';
+    del.style.marginTop='11px';
+    let armed = false;
+    del.addEventListener('click', ()=>{
+      if(!armed){ armed=true; del.textContent='Tap again to delete'; setTimeout(()=>{armed=false; del.textContent='Delete this entry';},3500); return; }
+      deleteDonation(mid, did);
+      toast('Entry deleted'); close(); render();
+    });
+    body.appendChild(del);
+
+    const go = el('button','btn primary'); go.type='button';
+    function label(){
+      go.disabled = !(pick.value>0);
+      go.textContent = pick.value>0 ? 'Save '+rs(pick.value)+'  ·  '+dmy(pick.date) : 'Choose an amount';
+    }
+    label();
+    go.addEventListener('click', ()=>{
+      updateDonation(mid, did, {amount:pick.value, date:pick.date, note:fNote.value.trim()});
+      toast('Entry updated'); close(); render();
+    });
+    actionBar(body, go);
+  });
+}
+
+/* ============ new entry ============ */
+function openEntry(pre){
+  pre = pre || {};
+  sheet('New madrasa', (body, close)=>{
+    const p = panel('Madrasa');
+    const f = el('div','fields');
+    const fName  = fieldInto(f,'Name', pre.name||'');
+    const fAddr  = fieldInto(f,'Address', pre.address||'');
+    const fRegd  = fieldInto(f,'Regd No', pre.regd||'', 'text', true);
+    const fPhone = fieldInto(f,'Phone', pre.phone||'', 'tel', true);
+    p.appendChild(f); body.appendChild(p);
+
+    const dupWrap = el('div'); dupWrap.style.marginTop='13px';
+    body.appendChild(dupWrap);
+
+    const ap = panel('Amount given');
+    const pick = amountPicker(ap, {usual:null, onChange:()=>label()});
+    body.appendChild(ap);
+
+    function checkDup(){
+      dupWrap.textContent='';
+      const nm = fName.value.trim(), rg = fRegd.value.trim();
+      if(nm.length<4 && rg.length<2) return;
+      const hits = search(rg.length>2 ? rg : nm).slice(0,3);
+      if(!hits.length) return;
+      dupWrap.appendChild(noteBox('warn','⚠','Might already be in your register. ','Tap one to open it instead of adding a second copy.'));
+      const c = el('div','panel'); c.style.marginTop='9px';
+      hits.forEach(h=>{
+        const b = el('button','cand'); b.type='button';
+        b.appendChild(el('div','n', h.m.name));
+        b.appendChild(el('div','a', [h.m.address, h.m.regd?('Regd '+h.m.regd):''].filter(Boolean).join('  ·  ')));
+        b.appendChild(el('div','h', h.m.years.length
+          ? 'Given '+h.m.years.length+'× · last '+rs(h.m.lastAmount)+' in '+h.m.lastYear
+          : 'No history yet'));
+        b.addEventListener('click', ()=>{ close(); openMadrasa(h.m.id); });
+        c.appendChild(b);
+      });
+      dupWrap.appendChild(c);
+    }
+    let t=null;
+    [fName,fRegd].forEach(i=> i.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(checkDup,260); }));
+    if(pre.name||pre.regd) checkDup();
+
+    const go = el('button','btn primary'); go.type='button';
+    function label(){
+      const ok = fName.value.trim().length>1;
+      go.disabled = !ok;
+      go.textContent = !ok ? 'Enter a name'
+        : (pick.value>0 ? 'Add and save '+rs(pick.value) : 'Add madrasa');
+    }
+    fName.addEventListener('input', label);
+    label();
+    go.addEventListener('click', ()=>{
+      const id = 'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      patchMadrasa(id, {name:fName.value.trim(), address:fAddr.value.trim(),
+                        regd:fRegd.value.trim(), phone:fPhone.value.trim()});
+      if(pick.value>0) recordDonation(id, pick.value, pick.date);
+      toast(pick.value>0 ? 'Added · '+rs(pick.value)+' saved' : 'Madrasa added');
+      close(); render();
+    });
+    actionBar(body, go);
+    setTimeout(()=>fName.focus(), 90);
+  });
+}
+
+/* ============ duplicates ============ */
+function openReview(){
+  sheet('Possible duplicates', (body)=>{
+    body.appendChild(noteBox('','⚇','Same madrasa, written two ways? ',
+      'These look alike but sit at different addresses, so they were kept apart. You decide.'));
+    const wrap = el('div'); wrap.style.marginTop='13px'; body.appendChild(wrap);
+    function draw(){
+      wrap.textContent='';
+      const dec = REG.reviewDecisions||{};
+      const open = (REG.reviewPairs||[]).filter(p=>{
+        if(dec[p.a+'|'+p.b]) return false;
+        return MAD.some(m=>m.id===p.a) && MAD.some(m=>m.id===p.b);
+      });
+      if(!open.length){
+        const b = el('div','blank');
+        b.appendChild(el('div','t','All reviewed'));
+        b.appendChild(el('div','s','Nothing left to decide.'));
+        wrap.appendChild(b); return;
+      }
+      open.forEach(p=>{
+        const A = MAD.find(m=>m.id===p.a), B = MAD.find(m=>m.id===p.b);
+        const box = el('div','pair');
+        [A,B].forEach(m=>{
+          const s = el('div','pside');
+          s.appendChild(el('div','n', m.name));
+          s.appendChild(el('div','a', m.address||'—'));
+          s.appendChild(el('div','y', m.years.join(', ')+'  ·  '+rs(m.total)+(m.regd?('  ·  Regd '+m.regd):'')));
+          box.appendChild(s);
+        });
+        const acts = el('div','pacts');
+        const yes = el('button','btn primary','Same — merge'); yes.type='button';
+        const no  = el('button','btn quiet','Different'); no.type='button';
+        yes.addEventListener('click', ()=>{
+          patchMadrasa(B.id, {mergedInto:A.id});
+          REG.reviewDecisions[p.a+'|'+p.b]='merged'; touch();
+          toast('Merged into '+shortName(A.name)); render(); draw();
+        });
+        no.addEventListener('click', ()=>{
+          REG.reviewDecisions[p.a+'|'+p.b]='separate'; touch(); draw();
+        });
+        acts.append(yes,no); box.appendChild(acts); wrap.appendChild(box);
+      });
+    }
+    draw();
+  });
+}
+
+/* ============ totals / export ============ */
+function openStats(){
+  sheet('Totals and export', (body, close)=>{
+    const years = [...new Set(MAD.flatMap(m=>m.years).concat([YEAR]))].sort();
+    const p1 = panel('Given each year');
+    years.forEach(y=>{
+      const ds = MAD.flatMap(m=>m.donations.filter(d=>Number(d.year)===y && d.amount!=null));
+      const r = el('div','srow');
+      r.appendChild(el('span',null, String(y)));
+      r.appendChild(el('span',null, ds.length+(ds.length===1?' donation':' donations')));
+      r.appendChild(el('span','v m', rs(ds.reduce((s,d)=>s+Number(d.amount),0))));
+      p1.appendChild(r);
+    });
+    body.appendChild(p1);
+
+    const p2 = panel('Your register');
+    [['Madaris on record', MAD.length],
+     ['Given three or more years', MAD.filter(m=>m.regular).length],
+     ['Lapsed since last year', MAD.filter(m=>m.status==='lapsed').length],
+     ['Added by you here', MAD.filter(m=>String(m.id).startsWith('n')).length],
+     ['Entries recorded here', MAD.flatMap(m=>m.donations.filter(d=>d.src==='app')).length]
+    ].forEach(([k,v])=>{
+      const r = el('div','srow');
+      r.appendChild(el('span',null,k));
+      r.appendChild(el('span','v', String(v)));
+      p2.appendChild(r);
+    });
+    body.appendChild(p2);
+
+    const dec = REG.reviewDecisions||{};
+    const open = (REG.reviewPairs||[]).filter(p=>!dec[p.a+'|'+p.b] && MAD.some(m=>m.id===p.a) && MAD.some(m=>m.id===p.b)).length;
+    const rev = el('button','btn quiet', open ? 'Review '+open+' possible duplicate'+(open===1?'':'s') : 'Duplicates — all reviewed');
+    rev.type='button'; rev.style.marginTop='13px';
+    rev.addEventListener('click', ()=>{ close(); openReview(); });
+    body.appendChild(rev);
+
+    const row = el('div','btnrow'); row.style.marginTop='10px';
+    const csv = el('button','btn quiet','Export CSV'); csv.type='button';
+    csv.addEventListener('click', exportCsv);
+    const bak = el('button','btn quiet','Backup file'); bak.type='button';
+    bak.addEventListener('click', ()=> download('rashid-register-'+TODAY()+'.json', JSON.stringify(REG,null,1), 'application/json'));
+    row.append(csv,bak); body.appendChild(row);
+
+    body.appendChild(noteBox('','ℹ','Your Excel file is never touched. ',
+      'RASHI.xlsx stays exactly as it is. The CSV gives you one row per donation with the exact date.'));
+  });
+}
+function csvCell(v){
+  const s = String(v==null?'':v);
+  return /[",\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function download(name, text, mime){
+  const blob = new Blob([text], {type:(mime||'text/plain')+';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+function exportCsv(){
+  const rows = [['Date','Year','Name Of Madaris','Address','Amount','Regd No','Phone','Note','Source']];
+  MAD.forEach(m=> m.donations.forEach(d=>{
+    rows.push([ d.date?dmy(d.date):'', d.year, m.name, m.address,
+                d.amount==null?'':d.amount, m.regd, m.phone, d.note||'',
+                d.src==='app'?'Rashid':'RASHI.xlsx' ]);
+  }));
+  download('rashid-'+TODAY()+'.csv', '﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'), 'text/csv');
+  toast('Exported '+(rows.length-1)+' rows');
+}
+
+/* ============ sync settings ============ */
+function openSync(){
+  sheet('Where your register is saved', (body, close)=>{
+    const c = GH.cfg();
+    body.appendChild(noteBox(c?'good':'', c?'✓':'⚇',
+      c ? 'Syncing with '+c.owner+'/'+c.repo+'. ' : 'Saved on this device only. ',
+      c ? 'Every change is pushed to that private repository, so your phone and computer stay in step.'
+        : 'Connect a private GitHub repository and this phone and your computer will share one register.'));
+
+    const p = panel('Private GitHub repository');
+    const f = el('div','fields');
+    const fOwner = fieldInto(f,'GitHub username', (c&&c.owner)||'', 'text', true);
+    const fRepo  = fieldInto(f,'Repository name', (c&&c.repo)||'rashid-data', 'text', true);
+    const fTok   = fieldInto(f,'Access token', (c&&c.token)||'', 'password', true);
+    p.appendChild(f); body.appendChild(p);
+
+    body.appendChild(noteBox('','ℹ','The token stays in this browser. ',
+      'It is never sent anywhere except GitHub. Make it a fine-grained token limited to that one repository, with Contents set to Read and write. You can revoke it at any time from your GitHub settings.'));
+
+    const row = el('div','btnrow'); row.style.marginTop='13px';
+    const save = el('button','btn primary','Connect and load'); save.type='button';
+    save.addEventListener('click', async ()=>{
+      const cfg = {owner:fOwner.value.trim(), repo:fRepo.value.trim(), token:fTok.value.trim(), path:'register.json', branch:'main'};
+      if(!cfg.owner||!cfg.repo||!cfg.token){ toast('Fill all three boxes', true); return; }
+      save.disabled=true; save.textContent='Connecting…';
+      GH.set(cfg);
+      try{
+        const r = await GH.pull();
+        if(r.missing){
+          dirty = true; await pushNow();
+          toast('Created register.json in '+cfg.repo);
+        }else{
+          REG = mergeRegisters(REG, r.data);
+          saveLocal(); reindex();
+          dirty = true; await pushNow();
+          toast('Connected · '+MAD.length+' madaris');
+        }
+        render(); close();
+      }catch(e){
+        GH.clear();
+        toast(String(e.message||e), true);
+        save.disabled=false; save.textContent='Connect and load';
+      }
+      syncBadge();
+    });
+    row.appendChild(save);
+    if(c){
+      const off = el('button','btn quiet','Disconnect'); off.type='button';
+      off.addEventListener('click', ()=>{ GH.clear(); sha=null; toast('Disconnected'); syncBadge(); close(); });
+      row.appendChild(off);
+    }
+    body.appendChild(row);
+
+    const imp = el('button','btn quiet','Load a register file from this device'); imp.type='button';
+    imp.style.marginTop='10px';
+    imp.addEventListener('click', ()=> pickFile(close));
+    body.appendChild(imp);
+  });
+}
+function pickFile(after){
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='application/json,.json';
+  inp.addEventListener('change', async ()=>{
+    const f = inp.files && inp.files[0]; if(!f) return;
+    try{
+      const parsed = JSON.parse(await f.text());
+      if(!parsed || !Array.isArray(parsed.madaris)) throw new Error('That file is not a Rashid register');
+      REG = REG && REG.madaris.length ? mergeRegisters(REG, parsed) : parsed;
+      REG.reviewDecisions = REG.reviewDecisions||{};
+      saveLocal(); reindex(); render();
+      dirty = true; schedulePush();
+      toast('Loaded '+MAD.length+' madaris');
+      start();
+      if(after) after();
+    }catch(e){ toast(String(e.message||e), true); }
+  });
+  inp.click();
+}
+
+/* ============ boot ============ */
+function emptyRegister(){ return {version:1, updated:null, madaris:[], reviewPairs:[], reviewDecisions:{}}; }
+
+function showApp(){ $('#boot').hidden = true; $('#app').hidden = false; }
+function start(){
+  if(REG && REG.madaris.length){ showApp(); render(); }
+}
+
+function setupScreen(msg, showActions){
+  $('#bootMsg').innerHTML = msg;
+  const b = $('#bootBody'); b.textContent='';
+  if(!showActions) return;
+  const gh = el('button','btn primary','Connect your GitHub register'); gh.type='button';
+  gh.addEventListener('click', ()=>{ showApp(); openSync(); });
+  const fl = el('button','btn quiet','Load register.json from this device'); fl.type='button';
+  fl.style.marginTop='10px';
+  fl.addEventListener('click', ()=>pickFile(null));
+  b.append(gh, fl);
+}
+
+async function boot(){
+  const savedTheme = LS.get('theme', null);
+  if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+  REG = LS.get('register', null) || emptyRegister();
+  REG.reviewDecisions = REG.reviewDecisions || {};
+  REG.reviewPairs = REG.reviewPairs || [];
+  reindex();
+  if(MAD.length) start();
+
+  if(GH.cfg()){
+    try{
+      const r = await GH.pull();
+      if(r.data){
+        const mine = REG;
+        REG = (mine.madaris.length) ? mergeRegisters(mine, r.data) : r.data;
+        REG.reviewDecisions = REG.reviewDecisions||{};
+        saveLocal(); reindex();
+        const changed = JSON.stringify(REG)!==JSON.stringify(mine);
+        if(changed && mine.madaris.length){ dirty=true; schedulePush(); }
+      }
+    }catch(e){ toast(String(e.message||e), true); }
+  }
+  if(MAD.length){ start(); render(); }
+  else setupScreen('Your register is not on this device yet.<br>Connect it once and it stays connected.', true);
+  syncBadge();
+}
+
+/* ============ events ============ */
+let qt = null;
+$('#q').addEventListener('input', e=>{
+  query = e.target.value; $('#qx').hidden = !query;
+  clearTimeout(qt); qt = setTimeout(render, 55);
+});
+$('#q').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    const r = search(query);
+    if(r.length) openMadrasa(r[0].m.id);
+  }
+});
+$('#qx').addEventListener('click', ()=>{ $('#q').value=''; query=''; $('#qx').hidden=true; render(); $('#q').focus(); });
+$('#btnType').addEventListener('click', ()=> openEntry(query?{name:query}:{}));
+$('#btnPhoto').addEventListener('click', ()=>{
+  sheet('From photo', (body)=>{
+    body.appendChild(noteBox('','\u{1F4F7}','Reading receipts is not switched on yet. ',
+      'It is the next thing being added: photograph the receipt, and the printed name and Regd No are looked up against your register automatically. Until then, use New entry.'));
+  });
+});
+$('#btnStats').addEventListener('click', openStats);
+$('#btnSync').addEventListener('click', openSync);
+$('#btnTheme').addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme');
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const next = cur==='dark' ? 'light' : cur==='light' ? 'dark' : (dark?'light':'dark');
+  document.documentElement.setAttribute('data-theme', next);
+  LS.set('theme', next);
+});
+document.addEventListener('keydown', e=>{
+  const tag = document.activeElement && document.activeElement.tagName;
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag||'')) return;
+  if(e.key==='/' || ((e.ctrlKey||e.metaKey) && e.key==='f')){ e.preventDefault(); $('#q').focus(); $('#q').select(); }
+});
+window.addEventListener('beforeunload', e=>{
+  if(dirty && GH.cfg()){ e.preventDefault(); e.returnValue=''; }
+});
+window.addEventListener('online', ()=>{ if(dirty) pushNow(); });
+
+boot();
+})();
+</script>
+</body>
+</html>
