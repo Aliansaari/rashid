@@ -1145,6 +1145,20 @@ const NOISE=/A\/?C|IFSC|BANK|EMAIL|@|GMAIL|PAYTM|MOB|CELL|PRESS|GRAPHICS|BRANCH|
 const KEY=/JAM[IE]A|JA ?MIA|MADRA|MADAR|DARUL|DAR[- ]?UL|MASJID|MAHAD|ISLAM|QURAN|ULOOM|ULUM|MADNI|TAMEER/i;
 const PLACE=/DISTT?\b|\bP\.?\s?O\b|\bVIA\b|PIN\s*[-:]?\s*\d{6}|BIHAR|PRADESH|JHARKHAND|BENGAL|TELANGANA|MAHARASHTRA|NAGAR|PURA|GANJ/i;
 
+/* v6 keeps lines under blocks > paragraphs > lines; data.lines is always empty */
+function linesFrom(data){
+  const out=[];
+  (data.blocks||[]).forEach(b=>(b.paragraphs||[]).forEach(p=>(p.lines||[]).forEach(l=>{
+    const t=String(l.text||'').replace(/\s+/g,' ').trim();
+    if(t) out.push({text:t, confidence:Number(l.confidence)||0});
+  })));
+  if(out.length) return out;
+  const conf=Number(data.confidence)||0;
+  return String(data.text||'').split(/\r?\n/)
+    .map(t=>({text:t.replace(/\s+/g,' ').trim(), confidence:conf}))
+    .filter(l=>l.text);
+}
+
 function extractReceipt(lines){
   const txt=lines.map(l=>l.text.replace(/\s+/g,' ').trim()).filter(Boolean);
   const blob=txt.join(' \n ');
@@ -1241,7 +1255,7 @@ function openPhoto(){
           if(m.status==='recognizing text'){ txt.textContent='Reading the receipt…'; fill.style.width=Math.round((m.progress||0)*100)+'%'; }
           else if(m.status) txt.textContent=String(m.status).replace(/^\w/,c=>c.toUpperCase())+'…';
         });
-        const res=await w.recognize(canvas);
+        const res=await w.recognize(canvas,{},{blocks:true,text:true});
         data=res.data;
       }catch(e){ err=e; }
       work.remove();
@@ -1257,7 +1271,7 @@ function openPhoto(){
         return;
       }
 
-      const lines=(data.lines||[]).map(l=>({text:l.text||'',confidence:l.confidence||0}));
+      const lines=linesFrom(data);
       const found=extractReceipt(lines);
       const verdict=judge(found);
 
