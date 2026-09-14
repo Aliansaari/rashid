@@ -1,0 +1,4 @@
+* text=auto
+*.wasm.js -text
+*.gz binary
+*.png binary
