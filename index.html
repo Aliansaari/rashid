@@ -147,6 +147,29 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 .yrchip{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:2px 6px;border-radius:5px;
   background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap}
 
+.quick{background:var(--surface);border-radius:0 0 var(--r2) var(--r2);box-shadow:var(--sh1);
+  margin-top:-8px;padding:13px 14px 12px;position:relative;z-index:1}
+.quick .ql{font-size:12.5px;color:var(--ink2);margin-bottom:9px;line-height:1.4}
+.quick .ql b{font-weight:600;color:var(--ink)}
+.quick .ql .nw{color:var(--accent-ink);font-weight:700}
+.quick .ql .al{color:var(--alert);font-weight:700}
+.qamts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.qa{height:46px;border-radius:9px;background:var(--sunk);font-family:"Bricolage Grotesque",sans-serif;
+  font-weight:700;font-size:14.5px;font-variant-numeric:tabular-nums;display:flex;align-items:center;
+  justify-content:center;position:relative}
+.qa:hover{background:var(--hair)}
+.qa.on{background:var(--accent);color:#fff}
+.qa i{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-style:normal;font-size:7.5px;
+  font-weight:700;letter-spacing:.07em;background:var(--ink);color:var(--ground);padding:2px 6px;
+  border-radius:99px;white-space:nowrap}
+.qgo{display:flex;gap:7px;margin-top:8px}
+.qgo .go{flex:1;height:46px;border-radius:9px;background:var(--accent);color:#fff;font-weight:600;
+  font-size:14.5px;display:flex;align-items:center;justify-content:center}
+.qgo .go:disabled{opacity:.4}
+.qgo .more{width:46px;height:46px;border-radius:9px;background:var(--sunk);color:var(--ink2);
+  display:grid;place-items:center;font-size:16px;flex:none}
+.qgo .more:hover{background:var(--hair)}
+.row.open{border-radius:var(--r2) var(--r2) 0 0}
 .addnew{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);
   border-radius:var(--r2);box-shadow:0 0 0 1.5px var(--accent-line);text-align:left}
 .addnew:hover{background:var(--accent-soft)}
@@ -474,9 +497,39 @@ function reindex(){
     m._atok=atoks(addrs.join(' '));
     m._r=[m.regd].concat(m.altRegds).map(nregd).filter(Boolean);
     m._p=nphone(m.phone);
+    m._all=new Set([...m._tok].filter(w=>w.length>=4));
     MAD.push(m);
   });
   MAD.sort((a,b)=>a.name.localeCompare(b.name));
+  // how many madaris use each word: a word only one of them uses identifies it
+  DF=new Map();
+  MAD.forEach(m=>m._all.forEach(w=>DF.set(w,(DF.get(w)||0)+1)));
+  const N=Math.max(MAD.length,1);
+  IDF=w=>Math.log(N/(1+(DF.get(w)||0)));
+  MAD.forEach(m=>{ let t=0; m._all.forEach(w=>{t+=IDF(w);}); m._self=t||1; });
+}
+let DF=new Map(), IDF=()=>0;
+
+/* Match a whole photo's text against the register by how rare each word is,
+   rather than guessing which line is the name. */
+function matchFromText(blob){
+  const words=new Set(nrm(blob).split(' ').filter(w=>w.length>=4));
+  const regds=new Set();
+  (String(blob).match(/[0-9]{2,}[0-9A-Za-z/\-]*/g)||[]).forEach(t=>{
+    const v=nregd(t);
+    if(v.length>=3 && !/^(19|20)[0-9]{2}$/.test(v)) regds.add(v);
+  });
+  const phones=new Set(String(blob).replace(/[^0-9]/g,' ').split(' ').filter(t=>/^[6-9][0-9]{9}$/.test(t)));
+  const out=[];
+  for(const m of MAD){
+    const hard=m._r.some(r=>regds.has(r))||(m._p&&phones.has(m._p));
+    const shared=[]; let w=0;
+    m._all.forEach(t=>{ if(words.has(t)){ shared.push(t); w+=IDF(t); } });
+    const sc=w+40*(w/m._self)+(hard?100:0);
+    if(sc>0) out.push({m,sc,w,hard,shared});
+  }
+  out.sort((a,b)=>b.sc-a.sc);
+  return out.slice(0,5);
 }
 
 function search(rawq){
@@ -501,7 +554,7 @@ function search(rawq){
         }
         if(!b){ok=false;break;} tot+=b;
       }
-      if(ok){ let s=300+tot*8; if(m._n.startsWith(qn))s+=160; if(s>sc){sc=s;why=why||'Name';} }
+      if(ok){ let s=300+tot*8; if(m._n.startsWith(qn))s+=160; if(s>sc){sc=s;} }
     }
     if(sc===0&&qn.length>=4){
       let d=0; for(const v of m._bgv) d=Math.max(d,dice(qbg,v));
@@ -705,8 +758,67 @@ function clearDetail(){
 }
 
 /* ---------- list ---------- */
+let openRowId=null;
+
+/* one line telling you where this madrasa stands, without opening anything */
+function standing(m){
+  const w=el('div','ql');
+  if(m.isNew){
+    const s=el('span','nw','NEW'); w.append(s,document.createTextNode('  ·  nothing recorded before'));
+  }else if(m.gave){
+    const s=el('span','al','ALREADY GIVEN'); w.append(s);
+    w.append(document.createTextNode('  ·  '+rs(m.thisYearTotal)+' this year'+
+      (m.thisYear.filter(d=>d.date).length?(' on '+nice(m.thisYear.filter(d=>d.date).slice(-1)[0].date)):'')));
+  }else{
+    w.append(document.createTextNode('Given '));
+    w.append(el('b',null,String(m.years.length)+(m.years.length===1?' time':' times')));
+    if(m.last) w.append(document.createTextNode('  ·  last '+rs(m.last.amount)+' on '+nice(m.last.date||(m.lastYear+'-01-01'))));
+  }
+  return w;
+}
+function quickPanel(m,collapse){
+  const q=el('div','quick');
+  q.appendChild(standing(m));
+  let value=m.usual!=null?m.usual:null;
+  const presets=[50,100,200,500];
+  if(m.usual!=null&&!presets.includes(m.usual)) presets[3]=m.usual;
+  const grid=el('div','qamts'), btns=[];
+  presets.forEach(v=>{
+    const b=el('button','qa'+(v===value?' on':''),rs(v)); b.type='button'; b.dataset.v=v;
+    if(v===m.usual) b.appendChild(el('i',null,'USUAL'));
+    b.addEventListener('click',ev=>{ ev.stopPropagation(); value=v; paint(); });
+    btns.push(b); grid.appendChild(b);
+  });
+  q.appendChild(grid);
+  const row=el('div','qgo');
+  const go=el('button','go'); go.type='button';
+  const more=el('button','more','⋯'); more.type='button'; more.title='Open the full record';
+  more.addEventListener('click',ev=>{ ev.stopPropagation(); openMadrasa(m.id); });
+  row.append(go,more); q.appendChild(row);
+  function paint(){
+    btns.forEach(b=>b.classList.toggle('on',value!=null&&Number(b.dataset.v)===value));
+    go.disabled=!(value>0);
+    go.textContent=value>0?('Save '+rs(value)+' today'):'Pick an amount';
+  }
+  paint();
+  go.addEventListener('click',ev=>{
+    ev.stopPropagation();
+    if(!(value>0)) return;
+    const amt=value, id=m.id;
+    const did=addDonation(id,amt,TODAY());
+    openRowId=null;
+    toast('Saved '+rs(amt)+' · '+shortName(m.name),{actionLabel:'Undo',action:()=>{
+      dropDonation(id,did); renderAll(); toast('Removed');
+    }});
+    renderAll();
+  });
+  q.addEventListener('click',ev=>ev.stopPropagation());
+  return q;
+}
+
 function rowFor(m,why){
-  const b=el('button','row'+(m.gave?' given':'')+(m.id===selectedId?' sel':''));
+  const wrap=el('div');
+  const b=el('button','row'+(m.gave?' given':'')+(m.id===selectedId?' sel':'')+(m.id===openRowId?' open':''));
   b.type='button';
   const top=el('div','rtop');
   top.appendChild(el('div','rname',m.name||'(no name)'));
@@ -729,8 +841,17 @@ function rowFor(m,why){
   m.years.forEach(y=>ys.appendChild(el('span','yrchip',String(y).slice(2))));
   f.appendChild(ys);
   b.appendChild(f);
-  b.addEventListener('click',()=>openMadrasa(m.id));
-  return b;
+  b.addEventListener('click',()=>{
+    openRowId = (openRowId===m.id) ? null : m.id;
+    if(wide() && openRowId) openMadrasa(m.id); else renderList();
+    if(openRowId) setTimeout(()=>{
+      const n2=document.querySelector('.row.open');
+      if(n2&&n2.scrollIntoView) n2.scrollIntoView({block:'nearest',behavior:'smooth'});
+    },30);
+  });
+  wrap.appendChild(b);
+  if(m.id===openRowId) wrap.appendChild(quickPanel(m));
+  return wrap;
 }
 function listFor(){
   if(query){ const r=search(query); return {title:'Results',items:r.map(x=>x.m),why:r.map(x=>x.why),searching:true}; }
@@ -1272,56 +1393,40 @@ function openPhoto(){
       }
 
       const lines=linesFrom(data);
-      const found=extractReceipt(lines);
-      const verdict=judge(found);
+      const blob=lines.map(l=>l.text).join(' \n ');
+      const hits=matchFromText(blob);
+      const top=hits[0];
+      const sure=!!(top&&(top.hard||top.w>=9));
 
       const v=el('div','verdict'); const vk=el('div','k'); const vm=el('div','m');
-      if(verdict.kind==='match'){
-        const m=verdict.hits[0].m;
+      if(sure){
+        const m=top.m;
         v.classList.add(m.gave?'v-warn':'v-prev');
         vk.textContent=m.gave?'ALREADY GIVEN':'PREVIOUS';
         vm.appendChild(el('b',null,m.name));
-        vm.appendChild(document.createTextNode(' — matched on '+verdict.why+'. '+
+        vm.appendChild(document.createTextNode(' — '+
           (m.gave?(rs(m.thisYearTotal)+' already recorded this year.')
-                 :('Given '+m.years.length+(m.years.length===1?' time':' times')+
-                   (m.last?(', last '+rs(m.last.amount)+' in '+m.lastYear):'')+'.'))));
-      }else if(verdict.kind==='ask'){
-        v.classList.add('v-warn'); vk.textContent='CHECK';
-        vm.appendChild(document.createTextNode('A madrasa with a similar name is in your register but at a different place. Look before you pick.'));
+                 :('given '+m.years.length+(m.years.length===1?' time':' times')+
+                   (m.last?(', last '+rs(m.last.amount)+' on '+nice(m.last.date||(m.lastYear+'-01-01'))):'')+'.'))));
       }else{
         v.classList.add('v-new'); vk.textContent='NEW';
         vm.appendChild(document.createTextNode('Nothing in your register matches this receipt.'));
       }
       v.append(vk,vm); v.style.marginTop='13px'; holder.appendChild(v);
 
-      const rp=panel('Read from the receipt');
-      let any=false;
-      [['Name',found.name],['Regd No',found.regd],['Phone',found.phone],['Address',found.address]].forEach(function(p){
-        if(!p[1]) return;
-        any=true;
-        const r=el('div','sr');
-        r.appendChild(el('span',null,p[0]));
-        const val=el('span','v',p[1]); val.style.fontFamily='"IBM Plex Mono",monospace'; val.style.fontSize='12.5px';
-        val.style.fontWeight='500'; val.style.textAlign='right'; val.setAttribute('data-sel','');
-        r.appendChild(val); rp.appendChild(r);
-      });
-      if(!any){
-        const r=el('div','sr'); r.appendChild(el('span',null,'Nothing legible was found on this photo'));
-        rp.appendChild(r);
-      }
-      holder.appendChild(rp);
-
-      if(verdict.hits.length){
-        const c=panel(verdict.kind==='new'?'Closest in your register':'In your register');
-        verdict.hits.slice(0,4).forEach(h=>{
+      if(hits.length){
+        const c=panel(sure?'Record against this':'Closest in your register');
+        hits.slice(0,sure?3:4).forEach(h=>{
           const b=el('button','cand'); b.type='button';
           b.appendChild(el('div','n',h.m.name));
           b.appendChild(el('div','a',[h.m.address,h.m.regd?('Regd '+h.m.regd):''].filter(Boolean).join('  ·  ')));
-          b.appendChild(el('div','h',h.m.years.length?('Given '+h.m.years.length+'× · last '+rs(h.m.lastAmount)+' in '+h.m.lastYear):'No history yet'));
+          const ev=h.hard?'matched the registration number'
+                         :('matched on '+h.shared.slice(0,3).join(', ').toLowerCase());
+          b.appendChild(el('div','h',(h.m.years.length
+            ?('Given '+h.m.years.length+'× · last '+rs(h.m.lastAmount)+' in '+h.m.lastYear+' · ')
+            :'No history yet · ')+ev));
           b.addEventListener('click',()=>{
-            if(found.phone&&!h.m.phone) patchMad(h.m.id,{phone:found.phone});
-            if(found.regd&&!h.m.regd) patchMad(h.m.id,{regd:found.regd});
-            renderAll();
+            openRowId=h.m.id; renderAll();
             if(!wide()) close();
             openMadrasa(h.m.id);
           });
@@ -1330,9 +1435,10 @@ function openPhoto(){
         holder.appendChild(c);
       }
 
-      const add=el('button','btn'+(verdict.kind==='new'?' primary':''),'＋  Add as a new madrasa');
+      /* Adding as new: you choose which line is which. No guessing. */
+      const add=el('button','btn'+(sure?'':' primary'),'＋  Add as a new madrasa');
       add.type='button'; add.style.marginTop='12px';
-      add.addEventListener('click',()=>{ if(!wide()) close(); openNew(found); });
+      add.addEventListener('click',()=>{ if(!wide()) close(); openNewFromLines(lines); });
       holder.appendChild(add);
 
       const again=el('button','btn quiet','Read another receipt'); again.type='button'; again.style.marginTop='9px';
@@ -1344,9 +1450,104 @@ function openPhoto(){
       sm.textContent='What the photo actually said';
       sm.style.cssText='font-size:12.5px;color:var(--muted);cursor:pointer;padding:6px 2px';
       raw.appendChild(sm);
-      lines.forEach(l=>{ if(l.text.trim()) raw.appendChild(el('div','ocrline',l.text.replace(/\s+/g,' ').trim())); });
+      lines.forEach(l=>{ const d=el('div','ocrline',l.text); d.setAttribute('data-sel',''); raw.appendChild(d); });
       holder.appendChild(raw);
     });
+  },{backTo:null});
+}
+
+/* Add from a photo: you tap which line is the name, the address, the Regd No.
+   The app never decides that for you. */
+function openNewFromLines(lines){
+  const guess={name:'',address:'',regd:'',phone:''};
+  const blob=lines.map(l=>l.text).join(' ');
+  const rm=blob.match(/Reg[a-z]*\.?\s*No\.?\s*[:\-.]?\s*([0-9]{2,}[0-9A-Za-z/\-]*)/i);
+  if(rm) guess.regd=rm[1];
+  const ph=blob.replace(/[^0-9]/g,' ').split(' ').filter(t=>/^[6-9][0-9]{9}$/.test(t));
+  if(ph.length) guess.phone=ph[0];
+
+  screenOpen('New madrasa from photo',(body,close,ctx)=>{
+    body.appendChild(noteBox('','☝','Tap a line below to use it. ',
+      'Choose the field first, then tap the line from the receipt that belongs in it.'));
+
+    const p=panel('Madrasa');
+    const fName=field(p,'Name',guess.name);
+    const fAddr=field(p,'Address',guess.address);
+    const fRegd=field(p,'Regd No',guess.regd,'text',true);
+    const fPhone=field(p,'Phone',guess.phone,'tel',true);
+    body.appendChild(p);
+
+    let target=fName;
+    const tabs=el('div','dq'); tabs.style.padding='11px 0 0';
+    const defs=[['Name',fName],['Address',fAddr],['Regd No',fRegd],['Phone',fPhone]];
+    const tb=[];
+    defs.forEach(function(d){
+      const b=el('button','dqb',d[0]); b.type='button';
+      b.addEventListener('click',()=>{ target=d[1]; tb.forEach(x=>x[0].classList.toggle('on',x[1]===target)); });
+      tb.push([b,d[1]]); tabs.appendChild(b);
+    });
+    tb[0][0].classList.add('on');
+    body.appendChild(tabs);
+
+    const lp=panel('Lines read from the receipt');
+    lines.forEach(l=>{
+      const b=el('button','cand'); b.type='button';
+      b.appendChild(el('div','n',l.text));
+      b.addEventListener('click',()=>{
+        target.value = target.value ? (target.value+' '+l.text) : l.text;
+        target.dispatchEvent(new Event('input',{bubbles:true}));
+        toast('Added to '+(tb.find(x=>x[1]===target)||[{textContent:'field'}])[0].textContent);
+      });
+      lp.appendChild(b);
+    });
+    body.appendChild(lp);
+
+    const dup=el('div'); dup.style.marginTop='12px'; body.appendChild(dup);
+    const go=el('button','btn primary'); go.type='button';
+    const ap=panel('Amount given');
+    const pick=picker(ap,{usual:null,onChange:()=>lab()});
+    body.appendChild(ap);
+
+    function checkDup(){
+      dup.textContent='';
+      const nm=fName.value.trim(), rg=fRegd.value.trim();
+      if(nm.length<4&&rg.length<2) return;
+      const hits=search(rg.length>2?rg:nm).slice(0,3);
+      if(!hits.length) return;
+      dup.appendChild(noteBox('warn','⚠','Similar entries already exist. ','Open one instead of adding a second copy.'));
+      const c=el('div','panel'); c.style.marginTop='9px';
+      hits.forEach(h=>{
+        const b=el('button','cand'); b.type='button';
+        b.appendChild(el('div','n',h.m.name));
+        b.appendChild(el('div','a',h.m.address||''));
+        b.addEventListener('click',()=>{ if(!wide()) close(); openMadrasa(h.m.id); });
+        c.appendChild(b);
+      });
+      dup.appendChild(c);
+    }
+    let t=null;
+    [fName,fRegd].forEach(i=>i.addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(checkDup,260); lab(); }));
+
+    function lab(){
+      if(!go||!pick) return;
+      const ok=fName.value.trim().length>1;
+      go.disabled=!ok;
+      go.textContent=!ok?'Tap the line that is the name':(pick.value>0?('Add as new · save '+rs(pick.value)):'Add as new madrasa');
+    }
+    lab();
+    go.addEventListener('click',()=>{
+      const id='n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      patchMad(id,{name:fName.value.trim(),address:fAddr.value.trim(),regd:fRegd.value.trim(),phone:fPhone.value.trim()});
+      const amt=pick.value;
+      if(amt>0) addDonation(id,amt,pick.date);
+      toast(amt>0?('Added as new · '+rs(amt)):'Added as new madrasa',{actionLabel:'Undo',action:()=>{
+        dropMad(id); renderAll(); clearDetail(); toast('Removed');
+      }});
+      renderAll();
+      if(!wide()) close();
+      openMadrasa(id);
+    });
+    mountAction(ctx,go);
   },{backTo:null});
 }
 
