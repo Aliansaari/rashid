@@ -891,9 +891,9 @@ function renderTiles(){
   if(mine.length){
     const sum=mine.reduce((s,d)=>s+Number(d.amount||0),0);
     const n=el('div','today');
-    n.appendChild(document.createTextNode('Today'));
-    const b1=el('b',null,String(mine.length)); n.appendChild(b1);
-    n.appendChild(document.createTextNode(mine.length===1?'madrasa ·':'madaris ·'));
+    n.appendChild(document.createTextNode('Today · '));
+    n.appendChild(el('b',null,String(mine.length)));
+    n.appendChild(document.createTextNode(mine.length===1?' madrasa · ':' madaris · '));
     n.appendChild(el('b',null,rs(sum)));
     host.appendChild(n);
   }
