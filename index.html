@@ -944,7 +944,7 @@ function reindex(){
     m.regular=m.priorYears>=3;
     const names=[m.name].concat(m.altNames).filter(Boolean);
     const addrs=[m.address].concat(m.altAddresses).filter(Boolean);
-    m._n=nrm(names.join(' ')); m._bgv=names.map(v=>bgs(nrm(v)));
+    m._n=nrm(names.join(' ')); m._nv=names.map(v=>nrm(v)); m._bgv=names.map(v=>bgs(nrm(v)));
     m._tok=new Set((m._n+' '+nrm(addrs.join(' '))).split(' ').filter(w=>w.length>1));
     m._atok=atoks(addrs.join(' '));
     m._r=[m.regd].concat(m.altRegds).map(nregd).filter(Boolean);
@@ -989,13 +989,15 @@ function search(rawq){
   const qr=nregd(qq), qp=nphone(qq), qn=nrm(qq);
   const terms=qn.split(' ').filter(Boolean), qbg=bgs(qn), out=[];
   for(const m of MAD){
-    let sc=0, why='';
+    let sc=0, why='', strong=false;
+    // the name, exactly
+    if(qn && m._nv.some(v=>v===qn)){ sc=Math.max(sc,3000); why=''; strong=true; }
     if(qr.length>=2) for(const r of m._r){
-      if(r===qr){sc=Math.max(sc,1000);why='Regd No';}
-      else if(qr.length>=3&&r.startsWith(qr)){sc=Math.max(sc,900);why='Regd No';}
-      else if(qr.length>=4&&r.includes(qr)){sc=Math.max(sc,860);why='Regd No';}
+      if(r===qr){sc=Math.max(sc,2000);why='Regd No';strong=true;}
+      else if(qr.length>=3&&r.startsWith(qr)){sc=Math.max(sc,1400);why='Regd No';strong=true;}
+      else if(qr.length>=4&&r.includes(qr)){sc=Math.max(sc,1200);why='Regd No';strong=true;}
     }
-    if(qp.length>=4&&m._p&&m._p.includes(qp)){sc=Math.max(sc,950);why='Phone';}
+    if(qp.length>=4&&m._p&&m._p.includes(qp)){sc=Math.max(sc,1500);why='Phone';strong=true;}
     if(terms.length){
       let ok=true,tot=0;
       for(const t of terms){
@@ -1006,16 +1008,19 @@ function search(rawq){
         }
         if(!b){ok=false;break;} tot+=b;
       }
-      if(ok){ let s=300+tot*8; if(m._n.startsWith(qn))s+=160; if(s>sc){sc=s;} }
+      // every word you typed appears: that is a real match
+      if(ok){ let v=300+tot*8; if(m._n.startsWith(qn))v+=160; if(v>sc){sc=v;} strong=true; }
     }
     if(sc===0&&qn.length>=4){
       let d=0; for(const v of m._bgv) d=Math.max(d,dice(qbg,v));
-      if(d>=0.55){ sc=Math.round(d*520); why='Close spelling'; }
+      if(d>=0.55){ sc=Math.round(d*200); why='Close spelling'; }   // a guess, never a match
     }
-    if(sc>0) out.push({m,sc,why});
+    if(sc>0) out.push({m,sc,why,strong});
   }
   out.sort((a,b)=>b.sc-a.sc||b.m.total-a.m.total||a.m.name.localeCompare(b.m.name));
-  return out.slice(0,60);
+  // if anything actually matches what you typed, do not pad the list with near-misses
+  const real=out.filter(x=>x.strong);
+  return (real.length?real:out).slice(0,60);
 }
 
 /* ---------- persistence ---------- */
@@ -1706,12 +1711,10 @@ function openMadrasa(id){
       const amt=pick.value;
       const did=addDonation(m.id,amt,pick.date);
       toast('Saved '+rs(amt)+' · '+shortName(m.name),{actionLabel:'Undo',action:()=>{
-        dropDonation(m.id,did); renderAll();
-        if(wide()) openMadrasa(m.id);
-        toast('Removed');
+        dropDonation(m.id,did); renderAll(); toast('Removed');
       }});
       renderAll();
-      if(wide()) openMadrasa(m.id); else close();
+      if(wide()) clearDetail(); else close();
     });
     if(wide()){
       const foot=el('div','cardfoot');
@@ -1756,7 +1759,7 @@ function openEntry(mid,did){
     go.addEventListener('click',()=>{
       editDonation(mid,did,{amount:pick.value,date:pick.date,note:fn.value.trim()});
       toast('Entry updated'); renderAll();
-      if(wide()) openMadrasa(mid); else close();
+      if(wide()) clearDetail(); else close();
     });
     mountAction(ctx,go);
   },{backTo:mid});
@@ -1831,9 +1834,8 @@ function openNew(pre){
         dropMad(id); renderAll(); clearDetail(); toast('Removed');
       }});
       $('#q').value=''; query=''; $('#qx').hidden=true;
-      renderAll();
-      if(!wide()) close();
-      openMadrasa(id);
+      cursorId=id; renderAll();
+      if(wide()) clearDetail(); else close();
     });
     mountAction(ctx,go);
     setTimeout(()=>fName.focus(),90);
