@@ -338,14 +338,14 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .row.open{border-radius:var(--r2) var(--r2) 0 0}
 /* a register of 350 reads better across columns than as stacked cards */
 .rowhead{display:grid;gap:14px;align-items:center;padding:0 16px 8px;
-  grid-template-columns:minmax(0,1fr) 148px auto 104px 118px}
+  grid-template-columns:minmax(0,1fr) 148px auto 104px 104px}
 .rowhead button{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
   color:var(--muted);text-align:left;display:flex;align-items:center;gap:4px}
 .rowhead button:hover{color:var(--ink)}
 .rowhead .r{justify-content:flex-end;text-align:right}
 .rowhead .ar{font-size:8px;color:var(--accent-ink)}
 .row.grid{display:grid;gap:14px;align-items:center;
-  grid-template-columns:minmax(0,1fr) 148px auto 104px 118px;padding:12px 16px 12px 16px}
+  grid-template-columns:minmax(0,1fr) 148px auto 104px 104px;padding:12px 16px 12px 16px}
 .row.grid .gname{min-width:0}
 .row.grid .gname b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
   font-size:14.5px;line-height:1.25;letter-spacing:-.012em;
@@ -362,6 +362,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .row.grid .gamt b.on{color:var(--accent-ink)}
 .row.grid .gamt s{display:block;text-decoration:none;font-size:10px;color:var(--faint);margin-top:1px}
 .row.grid .gst{display:flex;justify-content:flex-end}
+.row.grid .gst .tag{white-space:nowrap}
 .row.grid .yrs{margin-left:0}
 .addnew{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);
   border-radius:var(--r2);box-shadow:0 0 0 1.5px var(--accent-line);text-align:left}
@@ -1083,7 +1084,7 @@ function rowGrid(m,why){
   b.appendChild(am);
 
   const st=el('div','gst');
-  const t=tagFor(m);
+  const t=tagFor(m,true);
   if(t) st.appendChild(el('span','tag '+t[0],t[1]));
   else if(why) st.appendChild(el('span','tag t-quiet',why));
   b.appendChild(st);
@@ -1308,9 +1309,9 @@ function picker(host,opts){
 }
 
 /* one short word for where this madrasa stands, used in the masthead */
-function tagFor(m){
-  if(m.gave)   return ['t-given','Gave '+rs(m.thisYearTotal)+' this year'];
-  if(m.lapsed) return ['t-lapsed','Not yet this year'];
+function tagFor(m,brief){
+  if(m.gave)   return ['t-given', brief?'Given':('Gave '+rs(m.thisYearTotal)+' this year')];
+  if(m.lapsed) return ['t-lapsed', brief?'Not yet':'Not yet this year'];
   if(m.regular)return ['t-regular','Regular ×'+m.priorYears];
   if(m.isNew)  return ['t-new','New'];
   return null;
