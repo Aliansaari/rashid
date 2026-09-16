@@ -83,15 +83,15 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
   .detail .inner{max-width:1120px}
   .dcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
   .dcols > div{min-width:0}
-  .side{flex:0 0 468px;max-width:468px}
 }
-@media (min-width:1700px){ .side{flex:0 0 500px;max-width:500px} }
 @media (min-width:940px){
   #app{flex-direction:row}
   .side{flex:0 0 430px;max-width:430px;border-right:1px solid var(--hair)}
   .detail{display:flex;flex-direction:column;flex:1;min-width:0;background:var(--sunk)}
   .dock{display:none!important}
 }
+@media (min-width:1280px){ .side{flex:0 0 470px;max-width:470px} }
+@media (min-width:1700px){ .side{flex:0 0 510px;max-width:510px} }
 
 /* header */
 .hd{padding:14px 16px 0;flex:none}
