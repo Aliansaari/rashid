@@ -190,6 +190,27 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .regd.none em{opacity:.6}
 .tt .ids .regd{background:var(--sunk);border-radius:6px;padding:3px 8px}
 .detail .tt h1{font-size:25px}
+.h1row{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:7px}
+.h1row h1{margin:0}
+.tt .ad{font-size:14px}
+@media (min-width:940px){
+  .detail .tt{margin-bottom:18px}
+  .detail .tt h1{font-size:30px;line-height:1.12}
+  .detail .tt .ad{font-size:15px}
+}
+/* the action flows with the content once there is room, instead of hovering
+   at the bottom of a half-empty pane */
+.act.inflow{position:static;background:transparent;box-shadow:none;padding:18px 0 0}
+.act.inflow .inner{max-width:none}
+/* the thing you came here to do gets the weight */
+.panel.lead{box-shadow:0 0 0 1.5px var(--accent-line)}
+.panel.lead .ph .eyebrow{color:var(--accent-ink)}
+.amts{padding-top:10px}
+.verdict{padding:12px 14px}
+@media (min-width:1280px){
+  .dcols{gap:16px}
+  .verdict{margin-bottom:12px}
+}
 .rhead{background:var(--surface);border-radius:var(--r2);box-shadow:var(--sh1);padding:18px 18px 16px;margin-bottom:12px}
 .rhero{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
 .rhero .amt{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:40px;line-height:1;
@@ -853,7 +874,7 @@ function screenOpen(title,build,opts){
     bar.appendChild(h); host.appendChild(bar);
     const body=el('div','body scroll'); const inner=el('div','inner'); body.appendChild(inner); host.appendChild(body);
     const close=()=>{ if(opts.backTo) openMadrasa(opts.backTo); else clearDetail(); };
-    build(inner,close,{setTitle:t=>h.textContent=t,close,actionHost:host});
+    build(inner,close,{setTitle:t=>h.textContent=t,close,actionHost:host,inner:inner});
     return close;
   }
   const s=el('div','sheet');
@@ -866,12 +887,14 @@ function screenOpen(title,build,opts){
   const close=()=>{ s.remove(); document.removeEventListener('keydown',onKey); };
   function onKey(e){ if(e.key==='Escape'){ e.stopPropagation(); close(); } }
   b.addEventListener('click',close); document.addEventListener('keydown',onKey);
-  build(inner,close,{setTitle:t=>h.textContent=t,close,actionHost:s});
+  build(inner,close,{setTitle:t=>h.textContent=t,close,actionHost:s,inner:inner});
   return close;
 }
 function mountAction(ctx,btn){
   const a=el('div','act'); const i=el('div','inner'); i.appendChild(btn); a.appendChild(i);
-  ctx.actionHost.appendChild(a); return a;
+  if(wide()&&ctx.inner){ a.classList.add('inflow'); ctx.inner.appendChild(a); }
+  else ctx.actionHost.appendChild(a);
+  return a;
 }
 function clearDetail(){
   selectedId=null;
@@ -1180,9 +1203,13 @@ function verdictFor(m){
 function openMadrasa(id){
   const m=MAD.find(x=>x.id===id); if(!m) return;
   selectedId=id; renderList();
-  screenOpen(m.name,(body,close,ctx)=>{
+  screenOpen(wide()?'':m.name,(body,close,ctx)=>{
     const tt=el('div','tt');
-    tt.appendChild(el('h1',null,m.name));
+    const h1row=el('div','h1row');
+    h1row.appendChild(el('h1',null,m.name));
+    const tg=tagFor(m);
+    if(tg) h1row.appendChild(el('span','tag '+tg[0],tg[1]));
+    tt.appendChild(h1row);
     if(m.address){ const a=el('div','ad',m.address); a.setAttribute('data-sel',''); tt.appendChild(a); }
     const ids=el('div','ids');
     const r=el('span','regd'+(m.regd?'':' none'));
@@ -1238,6 +1265,7 @@ function openMadrasa(id){
 
     const go=el('button','btn primary'); go.type='button';
     const rp=panel('Record a donation');
+    rp.classList.add('lead');
     const pick=picker(rp,{usual:m.usual,onChange:()=>lab()});
     colB.appendChild(rp);
 
