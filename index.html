@@ -80,19 +80,18 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 }
 /* a wide pane splits in two so the record is beside the history, not below it */
 @media (min-width:1280px){
-  .detail .inner{max-width:1120px}
-  .detail .act .inner{max-width:1120px}
+  .detail .inner{max-width:none}
+  .detail .act .inner{max-width:none}
   .dcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
   .dcols > div{min-width:0}
 }
 @media (min-width:940px){
   #app{flex-direction:row}
-  .side{flex:0 0 430px;max-width:430px;border-right:1px solid var(--hair)}
-  .detail{display:flex;flex-direction:column;flex:1;min-width:0;background:var(--sunk)}
+  /* the register is the thing you scan, so it gets the room */
+  .side{flex:1 1 0;min-width:400px;max-width:none;border-right:1px solid var(--hair)}
+  .detail{display:flex;flex-direction:column;flex:0 0 46%;min-width:470px;max-width:760px;background:var(--sunk)}
   .dock{display:none!important}
 }
-@media (min-width:1280px){ .side{flex:0 0 470px;max-width:470px} }
-@media (min-width:1700px){ .side{flex:0 0 510px;max-width:510px} }
 
 /* header */
 .hd{padding:14px 16px 0;flex:none}
@@ -212,7 +211,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
   .verdict{margin-bottom:12px}
 }
 /* the action sits in the card it belongs to, not adrift under the page */
-@media (min-width:940px){ .detail .inner.col1{max-width:660px} }
+@media (min-width:940px){ .detail .inner.col1{max-width:none} }
 .cardfoot{padding:2px 15px 15px}
 .cardfoot .btn{box-shadow:none;height:48px}
 /* details are rarely edited: keep them one click away instead of repeating
@@ -337,6 +336,33 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
   display:grid;place-items:center;font-size:16px;flex:none}
 .qgo .more:hover{background:var(--hair)}
 .row.open{border-radius:var(--r2) var(--r2) 0 0}
+/* a register of 350 reads better across columns than as stacked cards */
+.rowhead{display:grid;gap:14px;align-items:center;padding:0 16px 8px;
+  grid-template-columns:minmax(0,1fr) 148px auto 104px 118px}
+.rowhead button{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);text-align:left;display:flex;align-items:center;gap:4px}
+.rowhead button:hover{color:var(--ink)}
+.rowhead .r{justify-content:flex-end;text-align:right}
+.rowhead .ar{font-size:8px;color:var(--accent-ink)}
+.row.grid{display:grid;gap:14px;align-items:center;
+  grid-template-columns:minmax(0,1fr) 148px auto 104px 118px;padding:12px 16px 12px 16px}
+.row.grid .gname{min-width:0}
+.row.grid .gname b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+  font-size:14.5px;line-height:1.25;letter-spacing:-.012em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.grid .gname s{display:block;text-decoration:none;font-size:12px;color:var(--muted);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.grid .gid{min-width:0}
+.row.grid .gid div{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.grid .gid div+div{color:var(--faint);margin-top:2px}
+.row.grid .gamt{text-align:right}
+.row.grid .gamt b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+  font-size:15px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.row.grid .gamt b.on{color:var(--accent-ink)}
+.row.grid .gamt s{display:block;text-decoration:none;font-size:10px;color:var(--faint);margin-top:1px}
+.row.grid .gst{display:flex;justify-content:flex-end}
+.row.grid .yrs{margin-left:0}
 .addnew{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);
   border-radius:var(--r2);box-shadow:0 0 0 1.5px var(--accent-line);text-align:left}
 .addnew:hover{background:var(--accent-soft)}
@@ -553,6 +579,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
     </div>
     <div class="listwrap scroll" id="listScroll">
       <div class="sec"><span class="eyebrow" id="secT">Recent</span><span class="c" id="secC"></span></div>
+      <div class="rowhead" id="rowhead" hidden></div>
       <div class="rows" id="rows"></div>
     </div>
     <div class="dock">
@@ -1026,7 +1053,56 @@ function quickPanel(m,collapse){
   return q;
 }
 
+const tableMode = () => window.matchMedia('(min-width:1180px)').matches;
+
+function rowGrid(m,why){
+  const wrap=el('div');
+  const b=el('button','row grid'+(m.gave?' given':'')+(m.id===selectedId?' sel':'')
+    +(m.id===openRowId?' open':'')+(m.id===cursorId?' cursor':''));
+  b.type='button'; b.dataset.mid=m.id;
+
+  const nm=el('div','gname');
+  nm.appendChild(el('b',null,m.name||'(no name)'));
+  nm.appendChild(el('s',null,m.address||'—'));
+  b.appendChild(nm);
+
+  const id=el('div','gid');
+  id.appendChild(el('div',null,m.regd||'—'));
+  if(m.phone) id.appendChild(el('div',null,m.phone));
+  b.appendChild(id);
+
+  const ys=el('div','yrs');
+  m.years.forEach(y=>ys.appendChild(el('span','yrchip',String(y).slice(2))));
+  b.appendChild(ys);
+
+  const am=el('div','gamt');
+  if(m.lastAmount!=null){
+    am.appendChild(el('b',m.gave?'on':null,rs(m.gave?m.thisYearTotal:m.lastAmount)));
+    am.appendChild(el('s',null,m.gave?String(YEAR):'last · '+m.lastYear));
+  }else am.appendChild(el('b',null,'—'));
+  b.appendChild(am);
+
+  const st=el('div','gst');
+  const t=tagFor(m);
+  if(t) st.appendChild(el('span','tag '+t[0],t[1]));
+  else if(why) st.appendChild(el('span','tag t-quiet',why));
+  b.appendChild(st);
+
+  b.addEventListener('click',()=>{
+    openRowId = (openRowId===m.id) ? null : m.id;
+    if(wide() && openRowId) openMadrasa(m.id); else renderList();
+    if(openRowId) setTimeout(()=>{
+      const n2=document.querySelector('.row.open');
+      if(n2&&n2.scrollIntoView) n2.scrollIntoView({block:'nearest'});
+    },30);
+  });
+  wrap.appendChild(b);
+  if(m.id===openRowId) wrap.appendChild(quickPanel(m));
+  return wrap;
+}
+
 function rowFor(m,why){
+  if(tableMode()) return rowGrid(m,why);
   const wrap=el('div');
   const b=el('button','row'+(m.gave?' given':'')+(m.id===selectedId?' sel':'')
     +(m.id===openRowId?' open':'')+(m.id===cursorId?' cursor':''));
@@ -1112,6 +1188,7 @@ function renderTiles(){
 }
 let cursorId=null;
 let VISIBLE=[];
+const LSORT={key:null,dir:1};
 function renderList(){
   const keep=$('#listScroll')?$('#listScroll').scrollTop:0;
   const r=listFor();
@@ -1120,6 +1197,34 @@ function renderList(){
   $('#secT').textContent=r.title;
   $('#secC').textContent=r.items.length?r.items.length+(r.items.length===1?' madrasa':' madaris'):'';
   const rows=$('#rows'); rows.textContent='';
+
+  const hd=$('#rowhead');
+  if(hd){
+    hd.textContent='';
+    if(tableMode()&&r.items.length){
+      hd.hidden=false;
+      [['name','Madrasa',false],['regd','Regd No',false],['years','Years given',false],
+       ['amount','Last',true],['status','Status',true]].forEach(function(c){
+        const b=el('button',c[2]?'r':null); b.type='button';
+        b.appendChild(document.createTextNode(c[1]));
+        if(LSORT.key===c[0]) b.appendChild(el('span','ar',LSORT.dir>0?'▲':'▼'));
+        if(c[0]==='regd'||c[0]==='status'){ b.style.cursor='default'; }
+        else b.addEventListener('click',()=>{
+          if(LSORT.key===c[0]) LSORT.dir=-LSORT.dir; else { LSORT.key=c[0]; LSORT.dir=c[0]==='name'?1:-1; }
+          renderList();
+        });
+        hd.appendChild(b);
+      });
+    }else hd.hidden=true;
+  }
+
+  if(LSORT.key){
+    const d=LSORT.dir;
+    if(LSORT.key==='name')   r.items.sort((a,b)=>d*a.name.localeCompare(b.name));
+    if(LSORT.key==='amount') r.items.sort((a,b)=>d*(((a.gave?a.thisYearTotal:a.lastAmount)||0)-((b.gave?b.thisYearTotal:b.lastAmount)||0)));
+    if(LSORT.key==='years')  r.items.sort((a,b)=>d*(a.years.length-b.years.length));
+  }
+
   const frag=document.createDocumentFragment();
   r.items.forEach((m,i)=>frag.appendChild(rowFor(m,r.why?r.why[i]:'')));
   if(r.searching && query.trim().length>=2){
@@ -2505,6 +2610,7 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('beforeunload',e=>{ if(dirty&&GH.cfg()){ e.preventDefault(); e.returnValue=''; } });
 window.addEventListener('online',()=>{ if(dirty) pushNow(); });
+matchMedia('(min-width:1180px)').addEventListener('change',()=>renderList());
 matchMedia('(min-width:940px)').addEventListener('change',()=>{
   $('#sheets').textContent='';
   if(wide()){ if(selectedId) openMadrasa(selectedId); else clearDetail(); }
