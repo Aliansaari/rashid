@@ -236,6 +236,22 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
    directly on it. Cards-on-grey made everything equal weight.
    ============================================================ */
 @media (min-width:1180px){
+/* five columns, and enough room that a long name is not cut in half */
+.rowhead,.row.grid{grid-template-columns:minmax(0,2.1fr) minmax(0,1.5fr) 128px 132px 92px!important;
+  gap:18px!important}
+.row.grid{min-height:46px!important;padding-left:22px!important;padding-right:22px!important}
+.rowhead{padding-left:22px!important;padding-right:22px!important}
+.row.grid .gname b{font-size:14px;font-weight:600;letter-spacing:-.004em;color:var(--ink)}
+.gaddr{font-size:13px;color:var(--muted)}
+.row.grid .gid div{font-size:12px;letter-spacing:-.01em}
+.row.grid .gamt b{font-size:14px;font-weight:700}
+.gyrs{justify-content:flex-end;flex-wrap:nowrap}
+.yrchip{background:var(--sunk);color:var(--muted);font-size:10px;padding:2.5px 5px}
+.yrchip.now{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+.rowhead button{font-size:9.5px;letter-spacing:.12em}
+.sec{padding-left:22px!important;padding-right:22px!important}
+}
+@media (min-width:1180px){
 /* one line per row: name, address, Regd No, years, last, status */
 .rowhead,.row.grid{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) 132px auto 90px 84px!important}
 .row.grid{padding-top:0!important;padding-bottom:0!important;min-height:42px!important;align-items:center}
@@ -1150,6 +1166,17 @@ function quickPanel(m,collapse){
 
 const tableMode = () => window.matchMedia('(min-width:1180px)').matches;
 
+/* The sheet stores names in capitals. A screen of 350 rows in capitals is
+   exhausting to read, so display them in title case. The data is untouched -
+   search, matching and the CSV all still use the original. */
+const SMALLWORD = new Set(['ul','al','e','ut','us','bin','ud','us','e','of','and','wa']);
+function tc(str){
+  return String(str==null?'':str).toLowerCase().replace(/[a-z0-9]+/g, function(w, i){
+    if(i>0 && SMALLWORD.has(w)) return w;
+    return w.charAt(0).toUpperCase()+w.slice(1);
+  });
+}
+
 function rowGrid(m,why){
   const wrap=el('div');
   const b=el('button','row grid'+(m.gave?' given':'')+(m.id===selectedId?' sel':'')
@@ -1157,28 +1184,23 @@ function rowGrid(m,why){
   b.type='button'; b.dataset.mid=m.id;
 
   const nm=el('div','gname');
-  nm.appendChild(el('b',null,m.name||'(no name)'));
+  nm.appendChild(el('b',null,tc(m.name)||'(no name)'));
   b.appendChild(nm);
 
-  b.appendChild(el('div','gaddr', m.address||'—'));
+  b.appendChild(el('div','gaddr', tc(m.address)||'—'));
 
   const id=el('div','gid');
   id.appendChild(el('div', m.regd?null:'no', m.regd||'—'));
   b.appendChild(id);
 
-  const ys=el('div','yrs');
-  m.years.forEach(y=>ys.appendChild(el('span','yrchip',String(y).slice(2))));
+  const ys=el('div','yrs gyrs');
+  m.years.forEach(y=>ys.appendChild(el('span','yrchip'+(y===YEAR?' now':''),String(y).slice(2))));
   b.appendChild(ys);
 
   const am=el('div','gamt');
   am.appendChild(el('b',m.gave?'on':null, m.lastAmount!=null?rs(m.gave?m.thisYearTotal:m.lastAmount):'—'));
   b.appendChild(am);
 
-  const st=el('div','gst');
-  const t=tagFor(m,true);
-  if(t) st.appendChild(el('span','tag '+t[0],t[1]));
-  else if(why) st.appendChild(el('span','tag t-quiet',why));
-  b.appendChild(st);
 
   b.addEventListener('click',()=>{
     if(wide()){ openRowId=null; cursorId=m.id; openMadrasa(m.id); return; }
@@ -1198,7 +1220,7 @@ function rowFor(m,why){
   b.dataset.mid=m.id;
   b.type='button';
   const top=el('div','rtop');
-  top.appendChild(el('div','rname',m.name||'(no name)'));
+  top.appendChild(el('div','rname',tc(m.name)||'(no name)'));
   if(m.lastAmount!=null){
     const a=el('div','ramt');
     a.appendChild(el('b',m.gave?'on':null,rs(m.gave?m.thisYearTotal:m.lastAmount)));
@@ -1206,7 +1228,7 @@ function rowFor(m,why){
     top.appendChild(a);
   }
   b.appendChild(top);
-  if(m.address) b.appendChild(el('div','raddr',m.address));
+  if(m.address) b.appendChild(el('div','raddr',tc(m.address)));
   const f=el('div','rfoot');
   const r=el('span','regd'+(m.regd?'':' none'));
   r.appendChild(el('em',null,'Regd'));
@@ -1294,7 +1316,7 @@ function renderList(){
     if(tableMode()&&r.items.length){
       hd.hidden=false;
       [['name','Madrasa',false],['address','Address',false],['regd','Regd No',false],
-       ['years','Years',false],['amount','Last',true],['status','Status',true]].forEach(function(c){
+       ['years','Years given',true],['amount','Last',true]].forEach(function(c){
         const b=el('button',c[2]?'r':null); b.type='button';
         b.appendChild(document.createTextNode(c[1]));
         if(LSORT.key===c[0]) b.appendChild(el('span','ar',LSORT.dir>0?'▲':'▼'));
@@ -1431,11 +1453,11 @@ function openMadrasa(id){
   screenOpen(wide()?'':m.name,(body,close,ctx)=>{
     const tt=el('div','tt');
     const h1row=el('div','h1row');
-    h1row.appendChild(el('h1',null,m.name));
+    h1row.appendChild(el('h1',null,tc(m.name)));
     const tg=tagFor(m);
     if(tg) h1row.appendChild(el('span','tag '+tg[0],tg[1]));
     tt.appendChild(h1row);
-    if(m.address){ const a=el('div','ad',m.address); a.setAttribute('data-sel',''); tt.appendChild(a); }
+    if(m.address){ const a=el('div','ad',tc(m.address)); a.setAttribute('data-sel',''); tt.appendChild(a); }
     const ids=el('div','ids');
     const r=el('span','regd'+(m.regd?'':' none'));
     r.appendChild(el('em',null,'Regd')); r.appendChild(document.createTextNode(m.regd||'—'));
@@ -1632,7 +1654,7 @@ function openNew(pre){
       const c=el('div','panel');
       hits.forEach(h=>{
         const b=el('button','cand'); b.type='button';
-        b.appendChild(el('div','n',h.m.name));
+        b.appendChild(el('div','n',tc(h.m.name)));
         b.appendChild(el('div','a',[h.m.address,h.m.regd?('Regd '+h.m.regd):''].filter(Boolean).join('  ·  ')));
         b.appendChild(el('div','h',h.m.years.length?('Given '+h.m.years.length+'× · last '+rs(h.m.lastAmount)+' in '+h.m.lastYear):'No history yet'));
         b.addEventListener('click',()=>{ if(!wide()) close(); openMadrasa(h.m.id); });
@@ -1873,7 +1895,7 @@ function openPhoto(){
         const c=panel(sure?'Record against this':'Closest in your register');
         hits.slice(0,sure?3:4).forEach(h=>{
           const b=el('button','cand'); b.type='button';
-          b.appendChild(el('div','n',h.m.name));
+          b.appendChild(el('div','n',tc(h.m.name)));
           b.appendChild(el('div','a',[h.m.address,h.m.regd?('Regd '+h.m.regd):''].filter(Boolean).join('  ·  ')));
           const ev=h.hard?'matched the registration number'
                          :('matched on '+h.shared.slice(0,3).join(', ').toLowerCase());
@@ -1973,7 +1995,7 @@ function openNewFromLines(lines){
       const c=el('div','panel'); c.style.marginTop='9px';
       hits.forEach(h=>{
         const b=el('button','cand'); b.type='button';
-        b.appendChild(el('div','n',h.m.name));
+        b.appendChild(el('div','n',tc(h.m.name)));
         b.appendChild(el('div','a',h.m.address||''));
         b.addEventListener('click',()=>{ if(!wide()) close(); openMadrasa(h.m.id); });
         c.appendChild(b);
@@ -2026,7 +2048,7 @@ function openReview(){
         const box=el('div','pair');
         [A,B].forEach(m=>{
           const s=el('div','ps');
-          s.appendChild(el('div','n',m.name));
+          s.appendChild(el('div','n',tc(m.name)));
           s.appendChild(el('div','a',m.address||'—'));
           s.appendChild(el('div','y',m.years.join(', ')+'  ·  '+rs(m.total)+(m.regd?('  ·  Regd '+m.regd):'')));
           box.appendChild(s);
@@ -2303,7 +2325,7 @@ function openReport(){
         const peak2=top[0].amt||1;
         top.forEach(t=>{
           const r=el('div','toprow');
-          const nm=el('div','tn',t.m.name);
+          const nm=el('div','tn',tc(t.m.name));
           nm.appendChild(el('s',null,t.n+(t.n===1?' donation':' donations')+
             (t.m.regd?('  \u00B7  Regd '+t.m.regd):'')));
           r.appendChild(nm);
@@ -2349,7 +2371,7 @@ function openReport(){
       list.forEach(x=>{
         const b=el('button','drow'); b.type='button';
         b.appendChild(el('div','dd',dmy(x.date)));
-        const nm=el('div','dn',x.m.name);
+        const nm=el('div','dn',tc(x.m.name));
         nm.appendChild(el('s',null,[x.m.address,x.m.regd?('Regd '+x.m.regd):''].filter(Boolean).join('  \u00B7  ')));
         b.appendChild(nm);
         b.appendChild(el('div','da',rs(x.amount)));
