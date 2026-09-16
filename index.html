@@ -74,10 +74,18 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 #app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 .side{display:flex;flex-direction:column;min-height:0;flex:1;background:var(--ground)}
 .detail{display:none}
-@media (min-width:1460px){
-  #app{max-width:1460px;margin:0 auto;box-shadow:0 0 0 1px var(--hair)}
+@media (min-width:1700px){
+  #app{max-width:1700px;margin:0 auto;box-shadow:0 0 0 1px var(--hair)}
   body{background:var(--sunk)}
 }
+/* a wide pane splits in two so the record is beside the history, not below it */
+@media (min-width:1280px){
+  .detail .inner{max-width:1120px}
+  .dcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+  .dcols > div{min-width:0}
+  .side{flex:0 0 468px;max-width:468px}
+}
+@media (min-width:1700px){ .side{flex:0 0 500px;max-width:500px} }
 @media (min-width:940px){
   #app{flex-direction:row}
   .side{flex:0 0 430px;max-width:430px;border-right:1px solid var(--hair)}
@@ -168,6 +176,19 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 .khelp:first-child{border-top:none}
 .khelp .d{margin-left:auto;color:var(--muted);text-align:right}
 
+/* number fields carried browser spinners, which looked like a stray control */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+/* the date field showed its own clear/expand affordances inconsistently */
+input[type=date]::-webkit-calendar-picker-indicator{opacity:.5;cursor:pointer}
+input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
+.sbfk{flex:none;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--faint);
+  background:var(--sunk);border-radius:5px;padding:2px 6px}
+@media (max-width:939px){ .sbfk{display:none} }
+.regd.none em{opacity:.6}
+.tt .ids .regd{background:var(--sunk);border-radius:6px;padding:3px 8px}
+.detail .tt h1{font-size:25px}
 .rhead{background:var(--surface);border-radius:var(--r2);box-shadow:var(--sh1);padding:18px 18px 16px;margin-bottom:12px}
 .rhero{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
 .rhero .amt{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:40px;line-height:1;
@@ -480,8 +501,9 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
       </div>
       <div class="sb">
         <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.7" stroke="currentColor" stroke-width="1.7"/><path d="M10.7 10.7 14 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-        <input id="q" placeholder="Search a name, Regd No or phone  (F3)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+        <input id="q" placeholder="Search a name, Regd No or phone" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
         <button class="qx" id="qx" hidden aria-label="Clear">&#10005;</button>
+        <span class="sbfk">F3</span>
       </div>
       <div class="tiles" id="tiles"></div>
       <div id="today"></div>
@@ -1102,13 +1124,15 @@ function picker(host,opts){
   host.appendChild(grid);
 
   const ins=el('div','ins');
-  const la=el('label','lb'); la.appendChild(el('span',null,'Amount'));
+  const la=el('label','lb');
+  const laS=el('span',null,'Amount'); laS.appendChild(el('span','fk','F8')); la.appendChild(laS);
   const custom=document.createElement('input');
   custom.type='number'; custom.inputMode='numeric'; custom.min='0'; custom.className='in big'; custom.placeholder='Other';
   if(value!=null&&!presets.includes(value)) custom.value=value;
   custom.addEventListener('input',()=>{ value=custom.value===''?null:Number(custom.value); sync(true); });
   la.appendChild(custom);
-  const ld=el('label','lb'); ld.appendChild(el('span',null,'Date given'));
+  const ld=el('label','lb');
+  const ldS=el('span',null,'Date given'); ldS.appendChild(el('span','fk','F2')); ld.appendChild(ldS);
   const di=document.createElement('input');
   di.type='date'; di.className='in'; di.value=date; di.max=TODAY();
   di.addEventListener('change',()=>{ date=di.value||TODAY(); sync(); });
@@ -1168,8 +1192,12 @@ function openMadrasa(id){
       a.appendChild(el('em',null,'Ph')); a.appendChild(document.createTextNode(m.phone)); ids.appendChild(a); }
     tt.appendChild(ids); body.appendChild(tt);
 
-    body.appendChild(verdictFor(m));
-    if(m.altNames.length) body.appendChild(noteBox('','✎','Also written as ',m.altNames.join('  ·  ')));
+    const cols=el('div','dcols');
+    const colA=el('div'), colB=el('div');
+    cols.append(colA,colB); body.appendChild(cols);
+
+    colA.appendChild(verdictFor(m));
+    if(m.altNames.length) colA.appendChild(noteBox('','✎','Also written as ',m.altNames.join('  ·  ')));
 
     if(!m.isNew){
       const hp=panel('Giving history',m.years.length+(m.years.length===1?' year':' years'));
@@ -1204,32 +1232,34 @@ function openMadrasa(id){
       [['Total',rs(m.total)],['Usual',m.usual!=null?rs(m.usual):'—'],['Years',String(m.years.length)]].forEach(function(p){
         const d=el('div'); d.appendChild(el('div','k',p[0])); d.appendChild(el('div','v',p[1])); sm.appendChild(d);
       });
-      hp.appendChild(sm); body.appendChild(hp);
+      hp.appendChild(sm); colA.appendChild(hp);
     }
 
     const go=el('button','btn primary'); go.type='button';
     const rp=panel('Record a donation');
     const pick=picker(rp,{usual:m.usual,onChange:()=>lab()});
-    body.appendChild(rp);
+    colB.appendChild(rp);
 
     const dp=panel('Details');
     const fPhone=field(dp,'Phone',m.phone,'tel',true);
     const fRegd=field(dp,'Regd No',m.regd,'text',true);
     const fAddr=field(dp,'Address',m.address,'text');
     const fNotes=field(dp,'Notes',m.notes,'area');
-    body.appendChild(dp);
+    colB.appendChild(dp);
 
     const sd=el('button','btn quiet','Save details'); sd.type='button'; sd.style.marginTop='11px';
     sd.addEventListener('click',()=>{
       patchMad(m.id,{phone:fPhone.value.trim(),regd:fRegd.value.trim(),address:fAddr.value.trim(),notes:fNotes.value.trim()});
       toast('Details saved'); renderAll();
     });
-    body.appendChild(sd);
+    colB.appendChild(sd);
 
     function lab(){
       if(!go||!pick) return;
       go.disabled=!(pick.value>0);
-      go.textContent=pick.value>0?('Save '+rs(pick.value)+'  ·  '+dmy(pick.date)):'Choose an amount';
+      go.textContent='';
+      go.appendChild(document.createTextNode(pick.value>0?('Save '+rs(pick.value)+'  ·  '+dmy(pick.date)):'Choose an amount'));
+      if(pick.value>0) go.appendChild(el('span','fk','F1'));
     }
     lab();
     go.addEventListener('click',()=>{
