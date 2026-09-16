@@ -945,6 +945,8 @@ function reindex(){
     const names=[m.name].concat(m.altNames).filter(Boolean);
     const addrs=[m.address].concat(m.altAddresses).filter(Boolean);
     m._n=nrm(names.join(' ')); m._nv=names.map(v=>nrm(v)); m._bgv=names.map(v=>bgs(nrm(v)));
+    m._distName=distinctWords(m._n);
+    m._dist=distinctWords(m._n+' '+nrm(addrs.join(' ')));
     m._tok=new Set((m._n+' '+nrm(addrs.join(' '))).split(' ').filter(w=>w.length>1));
     m._atok=atoks(addrs.join(' '));
     m._r=[m.regd].concat(m.altRegds).map(nregd).filter(Boolean);
@@ -984,10 +986,50 @@ function matchFromText(blob){
   return out.slice(0,5);
 }
 
+/* Nearly every madrasa is called Madrasa/Jamia something ul Quran, so those
+   words identify nobody. Only the rest of the name can tell two apart. */
+const COMMONWORD = new Set(['MADRASA','MADARSA','MADRSA','JAMIA','JAMIATUL','JAMIAT','DARUL','DAR',
+  'UL','TUL','AL','E','UD','BIN','ULOOM','QURAN','ISLAMIA','ISLAMIC','ISLAM','ARABIA','ARABIYA',
+  'TRUST','EDUCATION','EDUCATIONAL','SOCIETY','MASJID','MAHAD','THE','OF','AND','WA','FOUNDATION',
+  'COMMITTEE','WELFARE','CHARITABLE']);
+function distinctWords(normalised){
+  return String(normalised||'').split(' ').filter(w=>w.length>=4 && !COMMONWORD.has(w));
+}
+
+/* How many single-letter slips separate two words, giving up past `cap`.
+   Bigrams are too blunt for short words: AZMIA and AZIMIA score only 0.67
+   together, while being one typed letter apart. */
+function editDist(a,b,cap){
+  const la=a.length, lb=b.length;
+  if(Math.abs(la-lb)>cap) return cap+1;
+  let prev=new Array(lb+1), cur=new Array(lb+1);
+  for(let j=0;j<=lb;j++) prev[j]=j;
+  for(let i=1;i<=la;i++){
+    cur[0]=i; let best=cur[0];
+    for(let j=1;j<=lb;j++){
+      cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a.charAt(i-1)===b.charAt(j-1)?0:1));
+      if(cur[j]<best) best=cur[j];
+    }
+    if(best>cap) return cap+1;
+    const t=prev; prev=cur; cur=t;
+  }
+  return prev[lb];
+}
+/* 1 for the same word, down to 0 for unrelated. */
+function wordCloseness(a,b){
+  if(a===b) return 1;
+  const max=Math.max(a.length,b.length);
+  if(a.length>=5 && b.length>=5 && (a.indexOf(b)===0 || b.indexOf(a)===0)) return 0.94;
+  const cap = max>=8 ? 2 : 1;
+  const d = editDist(a,b,cap);
+  if(d>cap) return 0;
+  return 1 - d/max;
+}
+
 function search(rawq){
   const qq=String(rawq||'').trim(); if(!qq) return [];
   const qr=nregd(qq), qp=nphone(qq), qn=nrm(qq);
-  const terms=qn.split(' ').filter(Boolean), qbg=bgs(qn), out=[];
+  const terms=qn.split(' ').filter(Boolean), qd=distinctWords(qn), out=[];
   for(const m of MAD){
     let sc=0, why='', strong=false;
     // the name, exactly
@@ -1011,16 +1053,35 @@ function search(rawq){
       // every word you typed appears: that is a real match
       if(ok){ let v=300+tot*8; if(m._n.startsWith(qn))v+=160; if(v>sc){sc=v;} strong=true; }
     }
-    if(sc===0&&qn.length>=4){
-      let d=0; for(const v of m._bgv) d=Math.max(d,dice(qbg,v));
-      if(d>=0.55){ sc=Math.round(d*200); why='Close spelling'; }   // a guess, never a match
+    if(sc===0&&qd.length){
+      // half the identifying words must be there, and at least one of them
+      // has to be a near-certain match rather than a vague resemblance
+      let found=0, quality=0, strongestInName=0;
+      for(const t of qd){
+        let best=0, bestInName=0;
+        for(const w of m._dist){
+          const c=wordCloseness(t,w);
+          if(c>best) best=c;
+        }
+        for(const w of m._distName){
+          const c=wordCloseness(t,w);
+          if(c>bestInName) bestInName=c;
+        }
+        if(best>0){ found++; quality+=best; }
+        if(bestInName>strongestInName) strongestInName=bestInName;
+      }
+      if(found && strongestInName>=0.8 && found/qd.length>=0.5){
+        sc=Math.round(120*(quality/qd.length))+60*found;
+        why='Close spelling';
+      }
     }
     if(sc>0) out.push({m,sc,why,strong});
   }
   out.sort((a,b)=>b.sc-a.sc||b.m.total-a.m.total||a.m.name.localeCompare(b.m.name));
   // if anything actually matches what you typed, do not pad the list with near-misses
   const real=out.filter(x=>x.strong);
-  return (real.length?real:out).slice(0,60);
+  if(real.length) return real.slice(0,60);
+  return out.slice(0,6);   // nothing matched: offer a few near spellings, not a flood
 }
 
 /* ---------- persistence ---------- */
