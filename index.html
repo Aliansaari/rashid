@@ -749,6 +749,62 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .boot .mk{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;letter-spacing:.17em;margin-bottom:10px}
 .boot p{color:var(--muted);font-size:14.5px;max-width:34ch;margin:0 0 22px;line-height:1.55}
 .boot .acts{width:100%;max-width:340px;display:flex;flex-direction:column;gap:9px}
+/* =====================================================================
+   The counters are controls, so they get an edge you can aim at again.
+   And the record pane sits on warm paper now, so its sections need a
+   surface - left flat they read as loose text on a background.
+   ===================================================================== */
+@media (min-width:940px){
+  .tiles{display:grid!important;grid-template-columns:repeat(4,1fr);gap:9px;
+    padding:0 0 14px!important;margin:0!important;border-bottom:none!important}
+  .tile{background:var(--surface);box-shadow:0 0 0 1px var(--rule);border-radius:var(--r1);
+    padding:10px 13px 11px!important;text-align:left;transition:box-shadow .14s,background .14s}
+  .tile:first-child{padding-left:13px!important}
+  .tile:hover{background:var(--surface);box-shadow:0 0 0 1px var(--hair2)}
+  .tile b{display:block!important;font-size:20px;margin:0!important;line-height:1.05}
+  .tile s{display:block!important;font-size:9.5px;margin-top:4px!important;letter-spacing:.09em}
+  .tile[aria-pressed="true"]{background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent)}
+  .tile[aria-pressed="true"]::after{display:none!important}
+  .tile[aria-pressed="true"] b{color:var(--accent-ink)}
+
+  /* every section on the record gets its own sheet */
+  .detail .panel{
+    background:var(--surface)!important;
+    border:none!important;border-top:none!important;
+    border-radius:var(--r2)!important;
+    box-shadow:0 0 0 1px var(--rule)!important;
+    padding:0 16px 10px!important;
+    margin-top:12px!important;
+    overflow:hidden!important;
+  }
+  .detail .ph{padding:14px 0 9px!important}
+  .detail .hrow{padding-left:0!important;padding-right:0!important;border-top:1px solid var(--hair)}
+  .detail .hrow.now{margin:0 -16px;padding-left:16px!important;padding-right:16px!important}
+  .detail .sum{
+    margin:8px -16px -10px!important;border-top:1px solid var(--hair);
+    grid-template-columns:repeat(3,1fr);background:var(--sunk)}
+  .detail .sum.lean{grid-template-columns:repeat(2,1fr)}
+  .detail .sum div{padding:13px 16px!important;text-align:center}
+  .detail .sum div+div{border-left:1px solid var(--hair)!important;padding-left:16px!important}
+  .detail .sum .v{font-size:19px}
+
+  .detail .disc{margin-top:12px}
+  .detail .disc>summary{
+    background:var(--surface)!important;box-shadow:0 0 0 1px var(--rule)!important;
+    border:none!important;border-radius:var(--r2)!important;padding:14px 16px!important}
+  .detail .disc[open]>summary{border-radius:var(--r2) var(--r2) 0 0!important}
+  .detail .disc .panel{margin-top:0!important;border-radius:0 0 var(--r2) var(--r2)!important}
+
+  /* the receipt keeps its own warm stock and printed band */
+  .detail .panel.lead{
+    background:var(--receipt)!important;
+    border-top:3px solid var(--brand)!important;
+    border-radius:3px 3px var(--r2) var(--r2)!important;
+    box-shadow:0 0 0 1px var(--rule), 0 12px 26px -20px rgba(11,81,55,.55)!important;
+    margin-top:14px!important;padding:0 16px 10px!important;
+  }
+  .detail .verdict{margin:14px 0 0!important}
+}
 </style>
 </head>
 <body>
