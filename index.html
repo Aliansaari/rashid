@@ -155,6 +155,8 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 .row.cursor{box-shadow:0 0 0 2px var(--ink)}
 .qdate{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
 .qdate .dqb{height:36px;font-size:12.5px}
+.qnum{max-width:104px;flex:0 1 104px;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+  font-variant-numeric:tabular-nums}
 .qdi{height:38px;border-radius:99px;background:var(--sunk);border:none;outline:none;
   padding:0 12px;font-size:16px;color:var(--ink2);min-width:0;flex:1}
 .qdi:focus{box-shadow:inset 0 0 0 2px var(--accent)}
@@ -888,6 +890,7 @@ function quickPanel(m,collapse){
     const b=el('button','qa'+(v===value?' on':''),rs(v)); b.type='button'; b.dataset.v=v;
     if(v===m.usual) b.appendChild(el('i',null,'USUAL'));
     b.addEventListener('click',ev=>{ ev.stopPropagation(); value=v; paint(); });
+    b.title='Press '+(presets.indexOf(v)+1);
     btns.push(b); grid.appendChild(b);
   });
   q.appendChild(grid);
@@ -901,6 +904,17 @@ function quickPanel(m,collapse){
       date=d.toLocaleDateString('en-CA'); di.value=date; paint(); });
     dbtn.push([b,pr[1]]); drow.appendChild(b);
   });
+  const oth=document.createElement('input');
+  oth.type='number'; oth.inputMode='numeric'; oth.min='0';
+  oth.className='qdi qnum'; oth.placeholder='Other';
+  oth.addEventListener('click',ev=>ev.stopPropagation());
+  oth.addEventListener('input',ev=>{
+    ev.stopPropagation();
+    value = oth.value===''?null:Number(oth.value);
+    paint(true);
+  });
+  drow.appendChild(oth);
+
   const di=document.createElement('input');
   di.type='date'; di.className='qdi'; di.value=date; di.max=TODAY();
   di.addEventListener('click',ev=>ev.stopPropagation());
@@ -914,8 +928,9 @@ function quickPanel(m,collapse){
   more.addEventListener('click',ev=>{ ev.stopPropagation(); openMadrasa(m.id); });
   row.append(go,more); q.appendChild(row);
 
-  function paint(){
+  function paint(skipOther){
     btns.forEach(b=>b.classList.toggle('on',value!=null&&Number(b.dataset.v)===value));
+    if(!skipOther) oth.value=(value!=null&&presets.indexOf(value)<0)?value:'';
     dbtn.forEach(function(pr){ const d=new Date(); d.setDate(d.getDate()+pr[1]);
       pr[0].classList.toggle('on',date===d.toLocaleDateString('en-CA')); });
     go.disabled=!(value>0);
@@ -2271,14 +2286,17 @@ function primaryButton(){
   return (q && !q.disabled) ? q : null;
 }
 function dateField(){
+  // whatever is expanded in the list is what the user is looking at
+  const q=document.querySelector('.quick input[type=date]');
+  if(q) return q;
   const host=document.querySelector('.sheet')||document.querySelector('#detail');
-  const inSheet=host?host.querySelector('input[type=date]'):null;
-  return inSheet||document.querySelector('.quick input[type=date]');
+  return host?host.querySelector('input[type=date]'):null;
 }
 function amountField(){
+  const q=document.querySelector('.quick input[type=number]');
+  if(q) return q;
   const host=document.querySelector('.sheet')||document.querySelector('#detail');
-  const a=host?host.querySelector('input[type=number]'):null;
-  return a||document.querySelector('.quick input[type=number]');
+  return host?host.querySelector('input[type=number]'):null;
 }
 function handleFKey(e){
   const k=e.key;
