@@ -1181,6 +1181,15 @@ function picker(host,opts){
   return {get value(){return value;}, get date(){return date;}};
 }
 
+/* one short word for where this madrasa stands, used in the masthead */
+function tagFor(m){
+  if(m.gave)   return ['t-given','Gave '+rs(m.thisYearTotal)+' this year'];
+  if(m.lapsed) return ['t-lapsed','Not yet this year'];
+  if(m.regular)return ['t-regular','Regular ×'+m.priorYears];
+  if(m.isNew)  return ['t-new','New'];
+  return null;
+}
+
 function verdictFor(m){
   const v=el('div','verdict'); const k=el('div','k'); const msg=el('div','m');
   if(m.isNew){
