@@ -1070,7 +1070,10 @@ function search(rawq){
         if(best>0){ found++; quality+=best; }
         if(bestInName>strongestInName) strongestInName=bestInName;
       }
-      if(found && strongestInName>=0.8 && found/qd.length>=0.5){
+      // every identifying word has to be accounted for. A typo moves a letter,
+      // it does not delete a whole word - so a missing word means a different
+      // madrasa, not a near miss.
+      if(found===qd.length && strongestInName>=0.8){
         sc=Math.round(120*(quality/qd.length))+60*found;
         why='Close spelling';
       }
