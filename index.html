@@ -212,6 +212,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
   .verdict{margin-bottom:12px}
 }
 /* the action sits in the card it belongs to, not adrift under the page */
+@media (min-width:940px){ .detail .inner.col1{max-width:660px} }
 .cardfoot{padding:2px 15px 15px}
 .cardfoot .btn{box-shadow:none;height:48px}
 /* details are rarely edited: keep them one click away instead of repeating
@@ -1249,12 +1250,17 @@ function openMadrasa(id){
       a.appendChild(el('em',null,'Ph')); a.appendChild(document.createTextNode(m.phone)); ids.appendChild(a); }
     tt.appendChild(ids); body.appendChild(tt);
 
-    const cols=el('div','dcols');
-    const colA=el('div'), colB=el('div');
-    cols.append(colA,colB); body.appendChild(cols);
+    if(ctx.inner) ctx.inner.classList.add('col1');
+    const colA=body, colB=body;   // one column: answer, then act, then detail
 
-    colA.appendChild(verdictFor(m));
-    if(m.altNames.length) colA.appendChild(noteBox('','✎','Also written as ',m.altNames.join('  ·  ')));
+    body.appendChild(verdictFor(m));
+    if(m.altNames.length) body.appendChild(noteBox('','✎','Also written as ',m.altNames.join('  ·  ')));
+
+    const go=el('button','btn primary'); go.type='button';
+    const rp=panel('Record a donation');
+    rp.classList.add('lead');
+    const pick=picker(rp,{usual:m.usual,onChange:()=>lab()});
+    body.appendChild(rp);
 
     if(!m.isNew){
       const hp=panel('Giving history',m.years.length+(m.years.length===1?' year':' years'));
@@ -1301,12 +1307,6 @@ function openMadrasa(id){
       });
       hp.appendChild(sm); colA.appendChild(hp);
     }
-
-    const go=el('button','btn primary'); go.type='button';
-    const rp=panel('Record a donation');
-    rp.classList.add('lead');
-    const pick=picker(rp,{usual:m.usual,onChange:()=>lab()});
-    colB.appendChild(rp);
 
     const disc=document.createElement('details'); disc.className='disc';
     const sum2=document.createElement('summary');
@@ -1910,7 +1910,7 @@ function exportCsv(){
 /* ================================================================
    Report - any date range, the money, and every donation in it.
    ================================================================ */
-let RP = LS.get('report', null) || {preset:'year', from:'', to:'', sort:'date'};
+let RP = LS.get('report', null) || {preset:'all', from:'', to:'', sort:'date', grain:'year'};
 
 function allDonations(){
   const out=[];
@@ -1978,7 +1978,9 @@ function openReport(){
       const plotW=W-padL-padR, plotH=H-padT-padB;
       let peak=1; vals.forEach(v=>{ if(v>peak) peak=v; });
       const slot=plotW/keys.length;
-      const bw=Math.min(46,Math.max(6,slot-8));
+      const cap = keys.length<=4 ? 104 : (keys.length<=8 ? 64 : 46);
+      const bw=Math.min(cap,Math.max(6,slot-10));
+      const labelAll = keys.length<=6;
       const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
       svg.setAttribute('viewBox','0 0 '+W+' '+H);
       svg.setAttribute('role','img');
@@ -2016,8 +2018,8 @@ function openReport(){
         bar.addEventListener('touchend',hide);
         svg.appendChild(bar);
         svg.appendChild(mk('text',{x:x+bw/2,y:H-8,class:'clab','text-anchor':'middle'})).textContent=labels[i];
-        // a value on the tallest only, never on every column
-        if(i===peakIdx){
+        // label them all while there are few; only the tallest once it gets busy
+        if(labelAll||i===peakIdx){
           svg.appendChild(mk('text',{x:x+bw/2,y:y-6,class:'cval','text-anchor':'middle'})).textContent=rs(v);
         }
       });
@@ -2072,7 +2074,8 @@ function openReport(){
         return;
       }
 
-      const byYear=(new Date(to)-new Date(from))>86400000*420;
+      if(!RP.grain) RP.grain='year';
+      const byYear = RP.grain==='year';
       const sums=new Map(), cnts=new Map();
       shown.forEach(x=>{
         const k=byYear?x.date.slice(0,4):x.date.slice(0,7);
@@ -2083,6 +2086,13 @@ function openReport(){
       const labels=keys.map(k=>byYear?k:(MON[Number(k.slice(5,7))-1]+' '+k.slice(2,4)));
       const cp=panel(byYear?'Given each year':'Given each month',
                      keys.length+(keys.length===1?' period':' periods'));
+      const gr=el('div','sortrow'); gr.style.padding='0 15px 4px';
+      [['year','Year'],['month','Month']].forEach(function(x){
+        const b=el('button','dqb'+(RP.grain===x[0]?' on':''),x[1]); b.type='button';
+        b.addEventListener('click',()=>{ RP.grain=x[0]; LS.set('report',RP); draw(); });
+        gr.appendChild(b);
+      });
+      cp.appendChild(gr);
       cp.appendChild(chart(keys,keys.map(k=>sums.get(k)),labels,keys.map(k=>cnts.get(k))));
       out.appendChild(cp);
 
