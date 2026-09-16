@@ -1171,15 +1171,12 @@ function rowGrid(m,why){
   b.appendChild(st);
 
   b.addEventListener('click',()=>{
+    if(wide()){ openRowId=null; cursorId=m.id; openMadrasa(m.id); return; }
     openRowId = (openRowId===m.id) ? null : m.id;
-    if(wide() && openRowId) openMadrasa(m.id); else renderList();
-    if(openRowId) setTimeout(()=>{
-      const n2=document.querySelector('.row.open');
-      if(n2&&n2.scrollIntoView) n2.scrollIntoView({block:'nearest'});
-    },30);
+    renderList();
   });
   wrap.appendChild(b);
-  if(m.id===openRowId) wrap.appendChild(quickPanel(m));
+  if(!wide() && m.id===openRowId) wrap.appendChild(quickPanel(m));
   return wrap;
 }
 
@@ -2537,6 +2534,7 @@ function moveCursor(step){
   if(wide()) openMadrasa(cursorId);
 }
 function openQuick(id){
+  if(wide()){ cursorId=id; openMadrasa(id); return; }
   openRowId = (openRowId===id) ? null : id;
   renderList();
   const node=document.querySelector('.row.open');
@@ -2674,6 +2672,22 @@ document.addEventListener('keydown',e=>{
       return;
     }
     if(e.key==='o'){ e.preventDefault(); openMadrasa(openRowId); return; }
+  }else{
+    const lead=document.querySelector('.detail .panel.lead');
+    if(lead){
+      if(e.key>='1'&&e.key<='4'){
+        const b=[...lead.querySelectorAll('.am')][Number(e.key)-1];
+        if(b){ e.preventDefault(); b.click(); return; }
+      }
+      if(e.key==='t'||e.key==='y'){
+        const b=[...lead.querySelectorAll('.dq .dqb')][e.key==='t'?0:1];
+        if(b){ e.preventDefault(); b.click(); return; }
+      }
+      if(e.key==='Enter'){
+        const b=lead.querySelector('.cardfoot .btn');
+        if(b&&!b.disabled){ e.preventDefault(); b.click(); return; }
+      }
+    }
   }
 
   if(e.key==='ArrowDown'){ e.preventDefault(); moveCursor(1); return; }

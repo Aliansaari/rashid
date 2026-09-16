@@ -1,7 +1,7 @@
 /* Rashid Register - offline shell.
    The page itself is network-first so updates land as soon as they are pushed;
    icons and fonts are cache-first. Register data never passes through here. */
-const V = 'rashid-v24';
+const V = 'rashid-v25';
 const SHELL = ['./', './index.html', './manifest.webmanifest',
                './icon-192.png', './icon-512.png', './icon-maskable-512.png',
                './apple-touch-icon.png', './favicon-32.png'];
