@@ -87,6 +87,7 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 .mark{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17.5px;letter-spacing:.17em}
 .sub{font-size:12px;color:var(--faint);white-space:nowrap}
 @media (max-width:420px){ .sub{display:none} }
+@media (max-width:939px){ #bKeys{display:none} }
 .hdrow .sp{margin-left:auto}
 .ib{height:36px;min-width:36px;padding:0 10px;border-radius:9px;background:var(--surface);box-shadow:var(--sh1);
   display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:500;
@@ -147,6 +148,56 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 .yrchip{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:2px 6px;border-radius:5px;
   background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap}
 
+.row.cursor{box-shadow:0 0 0 2px var(--ink)}
+.qdate{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.qdate .dqb{height:36px;font-size:12.5px}
+.qdi{height:36px;border-radius:99px;background:var(--sunk);border:none;outline:none;
+  padding:0 10px;font-size:12.5px;color:var(--ink2);min-width:0;flex:1}
+.qdi:focus{box-shadow:inset 0 0 0 2px var(--accent)}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;
+  border-radius:5px;background:var(--sunk);box-shadow:var(--sh1);font-family:"IBM Plex Mono",monospace;
+  font-size:11px;color:var(--ink2);margin-right:3px}
+.khelp{display:flex;align-items:center;gap:10px;padding:9px 15px;border-top:1px solid var(--hair);font-size:13px}
+.khelp:first-child{border-top:none}
+.khelp .d{margin-left:auto;color:var(--muted);text-align:right}
+
+.rpresets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.rp{height:36px;padding:0 13px;border-radius:99px;background:var(--surface);box-shadow:var(--sh1);
+  font-size:13px;font-weight:500;color:var(--ink2)}
+.rp:hover{background:var(--hover)}
+.rp.on{background:var(--accent);color:#fff;box-shadow:none;font-weight:600}
+.rrange{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.big4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+@media (min-width:620px){ .big4{grid-template-columns:repeat(4,1fr)} }
+.b4{background:var(--surface);border-radius:var(--r2);box-shadow:var(--sh1);padding:13px 14px}
+.b4 .k{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.b4 .v{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:21px;margin-top:4px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.026em}
+.b4 .v.hl{color:var(--accent-ink)}
+.bars{padding:4px 15px 13px}
+.bline{display:grid;grid-template-columns:62px 1fr auto;align-items:center;gap:10px;padding:5px 0}
+.bline .bl{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted)}
+.bline .bt{height:9px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bline .bt i{display:block;height:100%;background:var(--accent-line);border-radius:99px}
+.bline .bv{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:12.5px;
+  font-variant-numeric:tabular-nums;text-align:right}
+.dlist{max-height:none}
+.drow{display:grid;grid-template-columns:58px 1fr auto;gap:11px;align-items:center;padding:10px 15px;
+  border-top:1px solid var(--hair);width:100%;text-align:left}
+.drow:first-of-type{border-top:none}
+.drow:hover{background:var(--hover)}
+.drow .dd{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted)}
+.drow .dn{font-size:13px;line-height:1.3;min-width:0}
+.drow .dn s{display:block;text-decoration:none;font-size:11px;color:var(--faint);margin-top:1px}
+.drow .da{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:14px;
+  font-variant-numeric:tabular-nums;text-align:right}
+.sortrow{display:flex;gap:6px;padding:0 15px 11px;flex-wrap:wrap}
+@media print{
+  body{overflow:visible;height:auto}
+  .side,.dock,.act,.bar,#toasts,.rpresets,.rrange,.sortrow,.btn{display:none!important}
+  #app,.detail,.body{display:block!important;height:auto!important;overflow:visible!important;background:#fff!important}
+  .panel,.b4{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+}
 .quick{background:var(--surface);border-radius:0 0 var(--r2) var(--r2);box-shadow:var(--sh1);
   margin-top:-8px;padding:13px 14px 12px;position:relative;z-index:1}
 .quick .ql{font-size:12.5px;color:var(--ink2);margin-bottom:9px;line-height:1.4}
@@ -214,7 +265,7 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
 @media (min-width:940px){
   .detail .bar{background:var(--sunk)}
   .detail .body{padding:20px 22px 26px}
-  .inner{max-width:620px}
+  .inner{max-width:680px;margin-left:auto;margin-right:auto}
 }
 .dempty{flex:1;display:grid;place-items:center;padding:40px;text-align:center}
 .dempty .t{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:18px;margin-bottom:6px;color:var(--ink2)}
@@ -324,7 +375,7 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
   font-variant-numeric:tabular-nums;letter-spacing:-.018em}
 
 .act{flex:none;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--ground);box-shadow:var(--sh3)}
-@media (min-width:940px){ .detail .act{background:var(--sunk)} .detail .act .inner{max-width:620px} }
+@media (min-width:940px){ .detail .act{background:var(--sunk)} .detail .act .inner{max-width:680px;margin:0 auto} }
 
 /* photo */
 .shot{width:100%;border-radius:var(--r2);background:var(--surface);box-shadow:0 0 0 1.5px var(--hair2);
@@ -371,7 +422,8 @@ button{background:none;border:none;padding:0;cursor:pointer;color:inherit;touch-
         <span class="sub">Madaris Register</span>
         <span class="sp"></span>
         <button class="ib" id="bSync" title="Where your register is saved"><span class="dot" id="dSync"></span><span id="tSync">Local</span></button>
-        <button class="ib" id="bStats" title="Totals and export" aria-label="Totals and export">&#8377;</button>
+        <button class="ib" id="bStats" title="Report (r)" aria-label="Report">&#8377;</button>
+        <button class="ib" id="bKeys" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
         <button class="ib" id="bTheme" title="Light or dark" aria-label="Switch theme">&#9681;</button>
       </div>
       <div class="sb">
@@ -790,35 +842,59 @@ function quickPanel(m,collapse){
     btns.push(b); grid.appendChild(b);
   });
   q.appendChild(grid);
+
+  // amount is not the whole story - the date belongs here too
+  let date=TODAY();
+  const drow=el('div','qdate'), dbtn=[];
+  [['Today',0],['Yesterday',-1]].forEach(function(pr){
+    const b=el('button','dqb',pr[0]); b.type='button';
+    b.addEventListener('click',ev=>{ ev.stopPropagation(); const d=new Date(); d.setDate(d.getDate()+pr[1]);
+      date=d.toLocaleDateString('en-CA'); di.value=date; paint(); });
+    dbtn.push([b,pr[1]]); drow.appendChild(b);
+  });
+  const di=document.createElement('input');
+  di.type='date'; di.className='qdi'; di.value=date; di.max=TODAY();
+  di.addEventListener('click',ev=>ev.stopPropagation());
+  di.addEventListener('change',ev=>{ ev.stopPropagation(); date=di.value||TODAY(); paint(); });
+  drow.appendChild(di);
+  q.appendChild(drow);
+
   const row=el('div','qgo');
   const go=el('button','go'); go.type='button';
   const more=el('button','more','⋯'); more.type='button'; more.title='Open the full record';
   more.addEventListener('click',ev=>{ ev.stopPropagation(); openMadrasa(m.id); });
   row.append(go,more); q.appendChild(row);
+
   function paint(){
     btns.forEach(b=>b.classList.toggle('on',value!=null&&Number(b.dataset.v)===value));
+    dbtn.forEach(function(pr){ const d=new Date(); d.setDate(d.getDate()+pr[1]);
+      pr[0].classList.toggle('on',date===d.toLocaleDateString('en-CA')); });
     go.disabled=!(value>0);
-    go.textContent=value>0?('Save '+rs(value)+' today'):'Pick an amount';
+    go.textContent=value>0?('Save '+rs(value)+'  ·  '+dmy(date)):'Pick an amount';
   }
   paint();
-  go.addEventListener('click',ev=>{
-    ev.stopPropagation();
-    if(!(value>0)) return;
-    const amt=value, id=m.id;
-    const did=addDonation(id,amt,TODAY());
+  q._save=()=>{
+    if(!(value>0)) return false;
+    const amt=value, id=m.id, when=date;
+    const did=addDonation(id,amt,when);
     openRowId=null;
     toast('Saved '+rs(amt)+' · '+shortName(m.name),{actionLabel:'Undo',action:()=>{
       dropDonation(id,did); renderAll(); toast('Removed');
     }});
     renderAll();
-  });
+    return true;
+  };
+  q._pick=i=>{ if(btns[i]){ value=Number(btns[i].dataset.v); paint(); } };
+  go.addEventListener('click',ev=>{ ev.stopPropagation(); q._save(); });
   q.addEventListener('click',ev=>ev.stopPropagation());
   return q;
 }
 
 function rowFor(m,why){
   const wrap=el('div');
-  const b=el('button','row'+(m.gave?' given':'')+(m.id===selectedId?' sel':'')+(m.id===openRowId?' open':''));
+  const b=el('button','row'+(m.gave?' given':'')+(m.id===selectedId?' sel':'')
+    +(m.id===openRowId?' open':'')+(m.id===cursorId?' cursor':''));
+  b.dataset.mid=m.id;
   b.type='button';
   const top=el('div','rtop');
   top.appendChild(el('div','rname',m.name||'(no name)'));
@@ -898,8 +974,12 @@ function renderTiles(){
     host.appendChild(n);
   }
 }
+let cursorId=null;
+let VISIBLE=[];
 function renderList(){
   const r=listFor();
+  VISIBLE=r.items.map(m=>m.id);
+  if(cursorId && VISIBLE.indexOf(cursorId)<0) cursorId=null;
   $('#secT').textContent=r.title;
   $('#secC').textContent=r.items.length?r.items.length+(r.items.length===1?' madrasa':' madaris'):'';
   const rows=$('#rows'); rows.textContent='';
@@ -1647,6 +1727,195 @@ function exportCsv(){
   toast('Exported '+(rows.length-1)+' rows');
 }
 
+/* ================================================================
+   Report - any date range, the money, and every donation in it.
+   ================================================================ */
+let RP = LS.get('report', null) || {preset:'year', from:'', to:'', sort:'date'};
+
+function allDonations(){
+  const out=[];
+  MAD.forEach(m=>m.donations.forEach(d=>{
+    if(d.amount==null||d.amount==='') return;
+    out.push({m:m, d:d, date:d.date||(d.year+'-01-01'), amount:Number(d.amount)});
+  }));
+  return out;
+}
+function rangeFor(preset){
+  const iso=d=>d.toLocaleDateString('en-CA');
+  if(preset==='year')   return [YEAR+'-01-01', TODAY()];
+  if(preset==='last')   return [(YEAR-1)+'-01-01', (YEAR-1)+'-12-31'];
+  if(preset==='season') return [YEAR+'-01-01', YEAR+'-04-30'];
+  if(preset==='d30'){ const a=new Date(); a.setDate(a.getDate()-29); return [iso(a), TODAY()]; }
+  if(preset==='d90'){ const a=new Date(); a.setDate(a.getDate()-89); return [iso(a), TODAY()]; }
+  if(preset==='all'){
+    const ds=allDonations().map(x=>x.date).sort();
+    return [ds[0]||(YEAR+'-01-01'), ds[ds.length-1]||TODAY()];
+  }
+  return [RP.from||(YEAR+'-01-01'), RP.to||TODAY()];
+}
+
+function openReport(){
+  screenOpen('Report',(body,close,ctx)=>{
+    const head=el('div'); body.appendChild(head);
+    const out=el('div'); body.appendChild(out);
+
+    const presets=[['year','This year'],['last','Last year'],['season','Ramadan season'],
+                   ['d30','Last 30 days'],['d90','Last 90 days'],['all','All time'],['custom','Custom']];
+    const pr=el('div','rpresets'), pb=[];
+    presets.forEach(function(x){
+      const b=el('button','rp',x[1]); b.type='button';
+      b.addEventListener('click',()=>{
+        RP.preset=x[0];
+        if(x[0]!=='custom'){ const r=rangeFor(x[0]); RP.from=r[0]; RP.to=r[1]; }
+        LS.set('report',RP); draw();
+      });
+      pb.push([b,x[0]]); pr.appendChild(b);
+    });
+    head.appendChild(pr);
+
+    const rr=el('div','rrange');
+    const lf=el('label','lb'); lf.appendChild(el('span',null,'From'));
+    const inF=document.createElement('input'); inF.type='date'; inF.className='in'; lf.appendChild(inF);
+    const lt=el('label','lb'); lt.appendChild(el('span',null,'To'));
+    const inT=document.createElement('input'); inT.type='date'; inT.className='in'; lt.appendChild(inT);
+    rr.append(lf,lt); head.appendChild(rr);
+    [inF,inT].forEach(i=>i.addEventListener('change',()=>{
+      RP.preset='custom'; RP.from=inF.value; RP.to=inT.value; LS.set('report',RP); draw();
+    }));
+
+    function draw(){
+      if(!RP.from||!RP.to){ const r0=rangeFor(RP.preset); RP.from=r0[0]; RP.to=r0[1]; }
+      let from=RP.from, to=RP.to;
+      if(from>to){ const t=from; from=to; to=t; }
+      inF.value=from; inT.value=to;
+      pb.forEach(function(x){ x[0].classList.toggle('on', x[1]===RP.preset); });
+
+      const shown=allDonations().filter(x=>x.date>=from&&x.date<=to);
+      const total=shown.reduce((a,x)=>a+x.amount,0);
+      const uniq=new Set(shown.map(x=>x.m.id)).size;
+      const avg=shown.length?Math.round(total/shown.length):0;
+
+      out.textContent='';
+
+      const span=el('div','note');
+      span.appendChild(el('span','i','\u{1F4C5}'));
+      const st=el('div');
+      st.appendChild(el('b',null,nice(from)+'  \u2192  '+nice(to)));
+      const days=Math.round((new Date(to)-new Date(from))/86400000)+1;
+      st.appendChild(document.createTextNode('  \u00B7  '+days+(days===1?' day':' days')));
+      span.appendChild(st); out.appendChild(span);
+
+      const b4=el('div','big4');
+      [['Total given',rs(total),true],['Donations',String(shown.length),false],
+       ['Madaris',String(uniq),false],['Average',rs(avg),false]].forEach(function(x){
+        const d=el('div','b4');
+        d.appendChild(el('div','k',x[0]));
+        d.appendChild(el('div','v'+(x[2]?' hl':''),x[1]));
+        b4.appendChild(d);
+      });
+      out.appendChild(b4);
+
+      if(!shown.length){
+        const bl=el('div','blank');
+        bl.appendChild(el('div','t','Nothing in this range'));
+        bl.appendChild(el('div','s','Pick a wider range, or a different one from the buttons above.'));
+        out.appendChild(bl);
+        addTools([], from, to);
+        return;
+      }
+
+      const byYear=(new Date(to)-new Date(from))>86400000*420;
+      const buckets=new Map();
+      shown.forEach(x=>{
+        const k=byYear?x.date.slice(0,4):x.date.slice(0,7);
+        buckets.set(k,(buckets.get(k)||0)+x.amount);
+      });
+      const keys=[...buckets.keys()].sort();
+      let peak=1; buckets.forEach(v=>{ if(v>peak) peak=v; });
+      const bp=panel(byYear?'Each year':'Each month', keys.length+(keys.length===1?' period':' periods'));
+      const bars=el('div','bars');
+      keys.forEach(k=>{
+        const line=el('div','bline');
+        const label=byYear?k:(MON[Number(k.slice(5,7))-1]+' '+k.slice(2,4));
+        line.appendChild(el('div','bl',label));
+        const t=el('div','bt'); const i=el('i');
+        i.style.width=Math.max(3,Math.round(buckets.get(k)/peak*100))+'%';
+        t.appendChild(i); line.appendChild(t);
+        line.appendChild(el('div','bv',rs(buckets.get(k))));
+        bars.appendChild(line);
+      });
+      bp.appendChild(bars); out.appendChild(bp);
+
+      const sorts=[['date','Newest first'],['old','Oldest first'],['amount','Largest first'],['name','By name']];
+      const lp=panel('Donations', String(shown.length));
+      const sr=el('div','sortrow');
+      sorts.forEach(function(x){
+        const b=el('button','dqb'+(RP.sort===x[0]?' on':''),x[1]); b.type='button';
+        b.addEventListener('click',()=>{ RP.sort=x[0]; LS.set('report',RP); draw(); });
+        sr.appendChild(b);
+      });
+      lp.appendChild(sr);
+
+      const list=shown.slice();
+      if(RP.sort==='date')   list.sort((a,b)=>b.date.localeCompare(a.date));
+      if(RP.sort==='old')    list.sort((a,b)=>a.date.localeCompare(b.date));
+      if(RP.sort==='amount') list.sort((a,b)=>b.amount-a.amount||b.date.localeCompare(a.date));
+      if(RP.sort==='name')   list.sort((a,b)=>a.m.name.localeCompare(b.m.name)||a.date.localeCompare(b.date));
+      list.forEach(x=>{
+        const b=el('button','drow'); b.type='button';
+        b.appendChild(el('div','dd',dmy(x.date)));
+        const nm=el('div','dn',x.m.name);
+        nm.appendChild(el('s',null,[x.m.address,x.m.regd?('Regd '+x.m.regd):''].filter(Boolean).join('  \u00B7  ')));
+        b.appendChild(nm);
+        b.appendChild(el('div','da',rs(x.amount)));
+        b.addEventListener('click',()=>{ if(!wide()) close(); openMadrasa(x.m.id); });
+        lp.appendChild(b);
+      });
+      out.appendChild(lp);
+
+      addTools(list, from, to);
+    }
+
+    function addTools(list, from, to){
+      const row=el('div','brow'); row.style.marginTop='12px';
+      const ex=el('button','btn quiet','Export this range'); ex.type='button';
+      ex.disabled=!list.length;
+      ex.addEventListener('click',()=>{
+        const rows=[['Date','Name Of Madaris','Address','Amount','Regd No','Phone','Note','Source']];
+        list.forEach(x=>rows.push([dmy(x.date),x.m.name,x.m.address,x.amount,x.m.regd,x.m.phone,
+                                   x.d.note||'',x.d.src==='app'?'Rashid':'RASHI.xlsx']));
+        saveFile('rashid-'+from+'-to-'+to+'.csv','\uFEFF'+rows.map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv');
+        toast('Exported '+list.length+' donations');
+      });
+      const pt=el('button','btn quiet','Print'); pt.type='button';
+      pt.addEventListener('click',()=>window.print());
+      row.append(ex,pt); out.appendChild(row);
+
+      const bk=el('button','btn quiet','Backup the whole register'); bk.type='button';
+      bk.style.marginTop='9px';
+      bk.addEventListener('click',()=>saveFile('rashid-register-'+TODAY()+'.json',JSON.stringify(REG,null,1),'application/json'));
+      out.appendChild(bk);
+
+      const dec=REG.reviewDecisions||{};
+      const openPairs=(REG.reviewPairs||[]).filter(pp=>!dec[pp.a+'|'+pp.b]&&MAD.some(m=>m.id===pp.a)&&MAD.some(m=>m.id===pp.b)).length;
+      const rv=el('button','btn quiet',openPairs?('Review '+openPairs+' possible duplicate'+(openPairs===1?'':'s')):'Duplicates \u2014 all reviewed');
+      rv.type='button'; rv.style.marginTop='9px';
+      rv.addEventListener('click',()=>{ close(); openReview(); });
+      out.appendChild(rv);
+
+      const lap=MAD.filter(m=>m.lapsed);
+      if(lap.length){
+        const lb=el('button','btn quiet','See the '+lap.length+' who have not given this year'); lb.type='button';
+        lb.style.marginTop='9px';
+        lb.addEventListener('click',()=>{ close(); $('#q').value=''; query=''; view='lapsed'; renderAll(); });
+        out.appendChild(lb);
+      }
+    }
+
+    draw();
+  },{backTo:null});
+}
+
 /* ---------- sync ---------- */
 function openSync(){
   screenOpen('Where your register is saved',(body,close)=>{
@@ -1769,18 +2038,111 @@ $('#q').addEventListener('keydown',e=>{
 $('#qx').addEventListener('click',()=>{ $('#q').value=''; query=''; $('#qx').hidden=true; renderAll(); $('#q').focus(); });
 $('#bNew').addEventListener('click',()=>openNew(query?{name:query.trim()}:{}));
 $('#bPhoto').addEventListener('click',openPhoto);
-$('#bStats').addEventListener('click',openStats);
+$('#bStats').addEventListener('click',openReport);
 $('#bSync').addEventListener('click',openSync);
+$('#bKeys').addEventListener('click',openKeys);
 $('#bTheme').addEventListener('click',()=>{
   const cur=document.documentElement.getAttribute('data-theme');
   const sysDark=matchMedia('(prefers-color-scheme: dark)').matches;
   const next=cur==='dark'?'light':cur==='light'?'dark':(sysDark?'light':'dark');
   document.documentElement.setAttribute('data-theme',next); LS.set('theme',next);
 });
+function moveCursor(step){
+  if(!VISIBLE.length) return;
+  let i=VISIBLE.indexOf(cursorId);
+  i = (i<0) ? (step>0?0:VISIBLE.length-1) : i+step;
+  if(i<0) i=0;
+  if(i>=VISIBLE.length) i=VISIBLE.length-1;
+  cursorId=VISIBLE[i];
+  renderList();
+  const node=document.querySelector('.row.cursor');
+  if(node&&node.scrollIntoView) node.scrollIntoView({block:'nearest'});
+  if(wide()) openMadrasa(cursorId);
+}
+function openQuick(id){
+  openRowId = (openRowId===id) ? null : id;
+  renderList();
+  const node=document.querySelector('.row.open');
+  if(node&&node.scrollIntoView) node.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function currentQuick(){ return document.querySelector('.quick'); }
+
+function openKeys(){
+  screenOpen('Keyboard',(body)=>{
+    const p=panel('Anywhere');
+    [['/','Jump to the search box'],['n','New madrasa'],['p','Read a receipt photo'],
+     ['r','Report'],['Esc','Close, or clear the search'],['?','This list']
+    ].forEach(function(x){
+      const r=el('div','khelp');
+      r.appendChild(el('span','kbd',x[0]));
+      r.appendChild(el('span',null,x[1]));
+      p.appendChild(r);
+    });
+    body.appendChild(p);
+    const q=panel('In the list');
+    [['\u2191 \u2193','Move between madaris'],['Enter','Open the quick entry on the highlighted one'],
+     ['1 \u2013 4','Pick that amount'],['t / y','Set the date to today or yesterday'],
+     ['Enter','Save once an amount is picked'],['o','Open the full record']
+    ].forEach(function(x){
+      const r=el('div','khelp');
+      r.appendChild(el('span','kbd',x[0]));
+      r.appendChild(el('span',null,x[1]));
+      q.appendChild(r);
+    });
+    body.appendChild(q);
+    body.appendChild(noteBox('','\u2139','Typing anywhere goes to the search box. ',
+      'So you can start typing a name straight away without reaching for the mouse.'));
+  },{backTo:null});
+}
+
 document.addEventListener('keydown',e=>{
-  const tag=document.activeElement&&document.activeElement.tagName;
-  if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag||'')) return;
-  if(e.key==='/'||((e.ctrlKey||e.metaKey)&&e.key==='f')){ e.preventDefault(); $('#q').focus(); $('#q').select(); }
+  const ae=document.activeElement;
+  const tag=ae&&ae.tagName;
+  const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(tag||'');
+
+  if(e.key==='Escape'){
+    if(typing && ae.id==='q'){ ae.value=''; query=''; $('#qx').hidden=true; renderAll(); ae.blur(); e.preventDefault(); return; }
+    if(openRowId){ openRowId=null; renderList(); e.preventDefault(); return; }
+  }
+  if(typing){
+    if(e.key==='ArrowDown' && ae.id==='q'){ e.preventDefault(); ae.blur(); moveCursor(1); }
+    if(e.key==='Enter' && ae.id==='q'){
+      const r=search(query);
+      if(r.length){ e.preventDefault(); cursorId=r[0].m.id; renderList(); openQuick(r[0].m.id); ae.blur(); }
+    }
+    return;
+  }
+
+  // a full screen is open on the phone: leave every key alone but Escape
+  if(!wide() && document.querySelector('.sheet')) return;
+
+  const q=currentQuick();
+  if(q){
+    if(e.key>='1'&&e.key<='4'){ e.preventDefault(); q._pick(Number(e.key)-1); return; }
+    if(e.key==='Enter'){ e.preventDefault(); if(q._save()) cursorId=null; return; }
+    if(e.key==='t'||e.key==='y'){
+      e.preventDefault();
+      const b=[...q.querySelectorAll('.qdate .dqb')][e.key==='t'?0:1];
+      if(b) b.click();
+      return;
+    }
+    if(e.key==='o'){ e.preventDefault(); openMadrasa(openRowId); return; }
+  }
+
+  if(e.key==='ArrowDown'){ e.preventDefault(); moveCursor(1); return; }
+  if(e.key==='ArrowUp'){ e.preventDefault(); moveCursor(-1); return; }
+  if(e.key==='Enter'&&cursorId){ e.preventDefault(); openQuick(cursorId); return; }
+  if(e.key==='/'||((e.ctrlKey||e.metaKey)&&e.key==='f')){ e.preventDefault(); $('#q').focus(); $('#q').select(); return; }
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  if(e.key==='n'){ e.preventDefault(); openNew({}); return; }
+  if(e.key==='p'){ e.preventDefault(); openPhoto(); return; }
+  if(e.key==='r'){ e.preventDefault(); openReport(); return; }
+  if(e.key==='?'){ e.preventDefault(); openKeys(); return; }
+  // any other plain letter starts a search
+  if(e.key.length===1&&/[a-z0-9]/i.test(e.key)){
+    $('#q').focus(); $('#q').value=e.key; query=e.key; $('#qx').hidden=false; renderAll();
+    e.preventDefault();
+  }
 });
 window.addEventListener('beforeunload',e=>{ if(dirty&&GH.cfg()){ e.preventDefault(); e.returnValue=''; } });
 window.addEventListener('online',()=>{ if(dirty) pushNow(); });
