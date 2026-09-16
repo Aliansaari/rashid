@@ -237,6 +237,86 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
    Desktop: one white working surface per side, content sitting
    directly on it. Cards-on-grey made everything equal weight.
    ============================================================ */
+/* ================= identity =================
+   Their receipts carry a deep printed band at the top, ruled fields and warm
+   paper. The app borrows that vocabulary instead of being a bare grid. */
+:root{
+  --brand:#0B5137; --brand-2:#0E6343; --on-brand:#FFFFFF;
+  --paper:#F5F3EE; --receipt:#FCFAF4; --rule:#E2DED4;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --brand:#0A1E16; --brand-2:#123527; --on-brand:#E6EFE9;
+  --paper:#0C1310; --receipt:#161D18; --rule:#242C26;
+}}
+:root[data-theme="dark"]{
+  --brand:#0A1E16; --brand-2:#123527; --on-brand:#E6EFE9;
+  --paper:#0C1310; --receipt:#161D18; --rule:#242C26;
+}
+
+#app{display:flex;flex-direction:column}
+.panes{flex:1;display:flex;min-height:0;flex-direction:column}
+@media (min-width:940px){ .panes{flex-direction:row} }
+
+.masthead{
+  flex:none;display:flex;align-items:center;gap:11px;
+  padding:calc(11px + env(safe-area-inset-top)) 18px 11px;
+  background:linear-gradient(180deg,var(--brand-2),var(--brand));
+  color:var(--on-brand);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);
+}
+.masthead .mk{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;
+  letter-spacing:.22em;line-height:1}
+.masthead .mkrule{width:1px;height:16px;background:rgba(255,255,255,.28)}
+.masthead .mksub{font-size:12px;color:rgba(255,255,255,.62);white-space:nowrap}
+@media (max-width:520px){ .masthead .mksub,.masthead .mkrule{display:none} }
+.masthead .sp{margin-left:auto}
+.masthead .ib{background:rgba(255,255,255,.13);box-shadow:none;color:rgba(255,255,255,.92);height:32px}
+.masthead .ib:hover{background:rgba(255,255,255,.22);color:#fff}
+.masthead .ib .dot{background:rgba(255,255,255,.5)}
+.masthead .ib .dot.ok{background:#5FD39F}
+.masthead .ib .dot.busy{background:#EBC66A}
+
+/* the toolbar band sits on paper, the register on white: three clear zones */
+.hd{background:var(--paper);padding-top:14px!important;border-bottom:1px solid var(--rule)}
+@media (min-width:940px){
+  .side{background:var(--surface)}
+  .detail{background:var(--paper)}
+  #app.picked .side{border-right:1px solid var(--rule)}
+}
+.tiles{border-bottom:none!important}
+
+/* a double rule under the column head, the way a ruled form is printed */
+@media (min-width:1180px){
+  .rowhead{border-bottom:2px solid var(--ink)!important;position:relative}
+  .rowhead::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;background:var(--hair2)}
+  .rows{padding-top:4px}
+  .row.grid{border-bottom:1px solid var(--rule)!important}
+  .row.grid:hover{background:var(--receipt)}
+  .row.grid.sel{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+}
+
+/* the record reads as a receipt: warm stock, a printed band, ruled fields */
+.detail .panel.lead{
+  background:var(--receipt)!important;
+  border-radius:3px 3px var(--r2) var(--r2)!important;
+  border-top:3px solid var(--brand)!important;
+  box-shadow:0 1px 0 var(--rule), 0 10px 24px -18px rgba(11,81,55,.5)!important;
+  padding:0 16px 6px!important;
+}
+.detail .panel.lead .ph{border-bottom:1px dashed var(--rule);margin-bottom:8px;padding:11px 0 9px!important}
+.detail .panel.lead .ph .eyebrow{color:var(--brand)}
+:root[data-theme="dark"] .detail .panel.lead .ph .eyebrow{color:var(--accent-ink)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .detail .panel.lead .ph .eyebrow{color:var(--accent-ink)} }
+.detail .panel.lead .am{box-shadow:inset 0 0 0 1px var(--rule)}
+.detail .panel.lead .in{box-shadow:inset 0 0 0 1px var(--rule)}
+.ac .flag{background:var(--brand);letter-spacing:.1em}
+
+/* the masthead already names the app, so the record title carries the weight */
+.detail .tt h1{letter-spacing:-.025em}
+.verdict{border-left:3px solid currentColor}
+.v-prev{border-left-color:var(--accent)}
+.v-new{border-left-color:var(--ink2)}
+.v-warn{border-left-color:var(--alert)}
 @media (min-width:1180px){
 /* with the window to itself the table can breathe; when a record is open it
    tightens but the name still comes first */
@@ -674,17 +754,19 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 <body>
 
 <div id="app" hidden>
+  <header class="masthead">
+    <span class="mk">RASHID</span>
+    <span class="mkrule"></span>
+    <span class="mksub">Madaris Register</span>
+    <span class="sp"></span>
+    <button class="ib" id="bSync" title="Where your register is saved"><span class="dot" id="dSync"></span><span id="tSync">Local</span></button>
+    <button class="ib" id="bStats" title="Report (F7)" aria-label="Report">&#8377;</button>
+    <button class="ib" id="bKeys" title="Keyboard shortcuts (F9)" aria-label="Keyboard shortcuts">?</button>
+    <button class="ib" id="bTheme" title="Light or dark" aria-label="Switch theme">&#9681;</button>
+  </header>
+  <div class="panes">
   <aside class="side">
     <div class="hd">
-      <div class="hdrow">
-        <span class="mark">RASHID</span>
-        <span class="sub">Madaris Register</span>
-        <span class="sp"></span>
-        <button class="ib" id="bSync" title="Where your register is saved"><span class="dot" id="dSync"></span><span id="tSync">Local</span></button>
-        <button class="ib" id="bStats" title="Report (F7)" aria-label="Report">&#8377;</button>
-        <button class="ib" id="bKeys" title="Keyboard shortcuts (F9)" aria-label="Keyboard shortcuts">?</button>
-        <button class="ib" id="bTheme" title="Light or dark" aria-label="Switch theme">&#9681;</button>
-      </div>
       <div class="sb">
         <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.7" stroke="currentColor" stroke-width="1.7"/><path d="M10.7 10.7 14 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
         <input id="q" placeholder="Search a name, Regd No or phone" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
@@ -705,6 +787,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
     </div>
   </aside>
   <section class="detail" id="detail"></section>
+  </div>
 </div>
 
 <div class="boot" id="boot">
